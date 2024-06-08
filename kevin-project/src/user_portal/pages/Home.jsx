@@ -84,6 +84,7 @@ const Home = () => {
                     aria-label="Sidebar">
                     <div className="px-4 py-8 overflow-y-auto">
                         <div className='flex flex-col justify-center items-center gap-4'>
+                        <div className='font-bold text-2xl'> Logo Here </div>
                             <div className='flex justify-start items-center w-[80%] bg-gray-300 py-2 px-4 rounded text-base gap-2 cursor-pointer'>
                                 <DashboardOutlinedIcon />
                                 Dashboard
