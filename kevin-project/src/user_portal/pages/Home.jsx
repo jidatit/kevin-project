@@ -30,7 +30,7 @@ const Home = () => {
     };
 
     return (
-        <>
+        <div className=' flex flex-col min-h-screen'>
             <nav className="w-full bg-white border-b-2 border-gray-300">
                 <div className="py-12 px-4 sm:py-12 sm:px-12 md:py-12 md:px-12 lg:py-12 lg:px-12 xl:py-12 xl:px-12 ">
                     <div className="flex items-center justify-between">
@@ -77,12 +77,12 @@ const Home = () => {
                 </div>
             </nav>
 
-            <div className='w-full h-full flex flex-row relative'>
+            <div className='w-full h-full flex flex-row relative flex-grow'>
                 <aside
                     id="logo-sidebar"
-                    className={`w-64 min-h-screen transition-transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-white border-r-2 border-gray-300 sm:translate-x-0 z-50`}
+                    className={`w-64 absolute left-0 top-0 bottom-0 transition-transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-white border-r-2 border-gray-300 sm:translate-x-0 z-50`}
                     aria-label="Sidebar">
-                    <div className="h-auto px-4 py-8 overflow-y-auto">
+                    <div className="px-4 py-8 overflow-y-auto">
                         <div className='flex flex-col justify-center items-center gap-4'>
                             <div className='flex justify-start items-center w-[80%] bg-gray-300 py-2 px-4 rounded text-base gap-2 cursor-pointer'>
                                 <DashboardOutlinedIcon />
@@ -100,13 +100,13 @@ const Home = () => {
                     </div>
                 </aside>
 
-                <div className={`absolute ${isSidebarOpen ? 'left-0' : 'left-0'} w-[80%] sm:left-64 md:left-64 lg:left-64 xl:left-64 2xl:left-64 m-4 border-4 border-red-500 transition-all duration-300`}>
-                    <div className="p-4 border-4 border-gray-200 border-dashed rounded-lg">
+                <div className={`absolute bottom-0 top-0 left-0 right-0 sm:ml-64 border-4 border-red-500 transition-all duration-300 overflow-y-auto min-h-full`}>
+                    <div className="p-4 border-4 border-gray-200 border-dashed rounded-lg h-[1000px]">
                         <h1>Dashboard</h1>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
 
