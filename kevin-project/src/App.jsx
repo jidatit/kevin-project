@@ -8,14 +8,13 @@ import UserLogin from './auth/UserLogin'
 import AdminLogin from './auth/AdminLogin'
 
 import UserLayout from './user_portal/Layout'
-import UserDashboardHome from './user_portal/pages/Home'
+import UserDashboardHome from './user_portal/pages/Dashboard'
 import UserDashboardProfile from './user_portal/pages/Profile'
 import UserDashboardClients from './user_portal/pages/Clients'
 
 import AdminLayout from './admin_portal/Layout'
 import AdminDashbaordHome from './admin_portal/pages/Home'
 import AdminDashbaordUsers from './admin_portal/pages/Users'
-
 
 function App() {
 
