@@ -5,6 +5,8 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import LockResetOutlinedIcon from '@mui/icons-material/LockResetOutlined';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
@@ -62,6 +64,11 @@ const Layout = () => {
         setAnchorEl(null);
     };
 
+    const NavToChangePass = () => {
+        navigate('/user_portal/changePassword');
+        handleClose();
+    }
+
     return (
         currentUser && userType === 'user' ? (
             <>
@@ -72,25 +79,25 @@ const Layout = () => {
                         className={`w-64 absolute flex flex-col left-0 top-0 border-r-2 border-gray-300 transition-transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-white sm:translate-x-0 z-50`}
                         aria-label="Sidebar"
                     >
-                        <div onClick={toggleCloseSidebar} className="w-full h-60 flex justify-center items-center text-3xl font-bold border-b-2 border-gray-300">
+                        <div onClick={toggleCloseSidebar} className="w-full h-60 flex justify-center items-center text-3xl font-bold border-b-2 border-gray-300 cursor-pointer">
                             Logo Here
                         </div>
                         <div className="flex flex-col justify-center items-center gap-4 mt-8">
                             <div
                                 onClick={() => navigate('/user_portal/')}
-                                className="flex justify-start items-center w-[80%] bg-gray-300 py-2 px-4 rounded text-base gap-2 cursor-pointer">
+                                className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer">
                                 <DashboardOutlinedIcon />
                                 Dashboard
                             </div>
                             <div 
                                 onClick={() => navigate('/user_portal/profile')}
-                                className="flex justify-start items-center w-[80%] bg-gray-300 py-2 px-4 rounded text-base gap-2 cursor-pointer">
+                                className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer">
                                 <AccountBoxOutlinedIcon />
                                 Profile
                             </div>
                             <div 
                                 onClick={() => navigate('/user_portal/clients')}
-                                className="flex justify-start items-center w-[80%] bg-gray-300 py-2 px-4 rounded text-base gap-2 cursor-pointer">
+                                className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer">
                                 <PeopleOutlineOutlinedIcon />
                                 Clients
                             </div>
@@ -99,7 +106,7 @@ const Layout = () => {
 
                     {/* Left Main Area */}
                     <div className="absolute flex flex-col left-0 right-0 sm:ml-64 transition-all duration-300">
-                        <div className="w-full flex flex-cols justify-between items-center py-4 px-4 sm:px-10 md:px-10 lg:px-10 xl:px-10">
+                        <div className="w-full flex flex-cols justify-between items-center border-r-2 border-gray-300 py-4 px-4 sm:px-10 md:px-10 lg:px-10 xl:px-10">
                             <div className="flex items-center justify-start gap-4 rtl:justify-end">
                                 <button onClick={toggleOpenSidebar} aria-controls="logo-sidebar" type="button" className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                                     <span className="sr-only">Open sidebar</span>
@@ -131,13 +138,13 @@ const Layout = () => {
                                     }}
                                 >
                                     {showNameInMenu && <MenuItem>Muhammad Umar</MenuItem>}
-                                    <MenuItem onClick={handleClose}>Profile</MenuItem>
-                                    <MenuItem onClick={handleClose}>Change Password</MenuItem>
-                                    <MenuItem onClick={logout}>Logout</MenuItem>
+                                    <MenuItem onClick={handleClose} className='gap-2' > <AccountBoxOutlinedIcon /> Profile</MenuItem>
+                                    <MenuItem onClick={NavToChangePass} className='gap-2' > <LockResetOutlinedIcon /> Change Password</MenuItem>
+                                    <MenuItem onClick={logout} className='gap-2' > <LogoutOutlinedIcon /> Logout</MenuItem>
                                 </Menu>
                             </div>
                         </div>
-                        <div className="w-full flex flex-cols justify-between items-center py-4 px-10">
+                        <div className="w-full py-4 px-10 bg-[#F9FFFC]">
                             <Outlet />
                         </div>
                     </div>

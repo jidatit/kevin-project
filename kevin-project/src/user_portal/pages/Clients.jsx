@@ -1,9 +1,12 @@
 import React from 'react'
+import ClientTable from '../components/ClientTable'
 
 const Clients = () => {
     return (
         <>
-            <h1>Clients</h1>
+            <div className='w-full h-auto' >
+                <ClientTable />
+            </div>
         </>
     )
 }
