@@ -15,6 +15,7 @@ import UserPasswordChange from './user_portal/components/UserPasswordChange'
 
 import AdminLayout from './admin_portal/Layout'
 import AdminDashbaordUsers from './admin_portal/pages/Users'
+import AdminPasswordChange from './admin_portal/components/AdminPasswordChange'
 
 function App() {
 
@@ -39,6 +40,7 @@ function App() {
 
           <Route path='/admin_portal' element={<AdminLayout />}>
             <Route index element={<AdminDashbaordUsers />} />
+            <Route path='changePassword' element={<AdminPasswordChange/>} />
             <Route path='logout' element={<Logout />} />
           </Route>
 

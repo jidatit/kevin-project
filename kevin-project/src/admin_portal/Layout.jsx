@@ -63,6 +63,11 @@ const Layout = () => {
         setAnchorEl(null);
     };
 
+    const NavToChangePass = () => {
+        navigate('/admin_portal/changePassword');
+        handleClose();
+    }
+
     return (
         currentUser && userType === 'admin' ? (
             <>
@@ -119,9 +124,8 @@ const Layout = () => {
                                         'aria-labelledby': 'basic-button',
                                     }}
                                 >
-                                    {showNameInMenu && <MenuItem> Admin </MenuItem>}
-                                    <MenuItem onClick={handleClose} className='gap-2' > <AccountBoxOutlinedIcon /> Profile</MenuItem>
-                                    <MenuItem onClick={handleClose} className='gap-2' > <LockResetOutlinedIcon /> Change Password</MenuItem>
+                                    {showNameInMenu && <MenuItem className='gap-2' > <AccountBoxOutlinedIcon /> Admin </MenuItem>}
+                                    <MenuItem onClick={NavToChangePass} className='gap-2' > <LockResetOutlinedIcon /> Change Password</MenuItem>
                                     <MenuItem onClick={logout} className='gap-2' > <LogoutOutlinedIcon /> Logout</MenuItem>
                                 </Menu>
                             </div>

@@ -3,6 +3,7 @@ import React, { useState, useMemo } from "react";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import { maxHeight } from "@mui/system";
 
 const style = {
     position: 'absolute',
@@ -14,6 +15,7 @@ const style = {
     boxShadow: 24,
     p: 4,
     overflow: 'auto',
+    maxHeight:'80vh'
 };
 
 const products = [
@@ -276,7 +278,7 @@ const TableReact = () => {
                     >
                         <Box sx={style} noValidate>
 
-                            <div id="modal-data" className="w-full max-h-[80vh] flex flex-col justify-center items-center gap-3" >
+                            <div id="modal-data" className="w-full h-full flex flex-col justify-start items-center gap-3" >
                                 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
@@ -295,64 +297,109 @@ const TableReact = () => {
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                        <label className="text-sm font-semibold" > Created Time </label>
+                                        <TextField sx={{ width: "100%" }} id="createdTimeID" value={"MefBer345"} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                        <label className="text-sm font-semibold" > Solid Date </label>
+                                        <TextField sx={{ width: "100%" }} id="solidDateID" value={"Muhammad Umar"} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Est Move Date </label>
-                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                        <label className="text-sm font-semibold" > First Name </label>
+                                        <TextField sx={{ width: "100%" }} id="firstNameID" value={"10/10/2004"} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                        <label className="text-sm font-semibold" > Last Name </label>
+                                        <TextField sx={{ width: "100%" }} id="lastNameID" value={"MefBer345"} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                        <label className="text-sm font-semibold" > Lead Status </label>
+                                        <TextField sx={{ width: "100%" }} id="leadStatusID" value={"Muhammad Umar"} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Est Move Date </label>
-                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                        <label className="text-sm font-semibold" > Provider </label>
+                                        <TextField sx={{ width: "100%" }} id="providerID" value={"10/10/2004"} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                        <label className="text-sm font-semibold" > Internet Solid </label>
+                                        <TextField sx={{ width: "100%" }} id="internetSolidID" value={"MefBer345"} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                        <label className="text-sm font-semibold" > TV Solid </label>
+                                        <TextField sx={{ width: "100%" }} id="tvSolidID" value={"Muhammad Umar"} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Est Move Date </label>
-                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                        <label className="text-sm font-semibold" > Phone Solid </label>
+                                        <TextField sx={{ width: "100%" }} id="phoneSolidID" value={"10/10/2004"} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                        <label className="text-sm font-semibold" > Move Quote Request </label>
+                                        <TextField sx={{ width: "100%" }} id="moveQuoteRequestID" value={"MefBer345"} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                        <label className="text-sm font-semibold" > Home Monitoring </label>
+                                        <TextField sx={{ width: "100%" }} id="homeMonitoringID" value={"Muhammad Umar"} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Est Move Date </label>
-                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                        <label className="text-sm font-semibold" > Utilities Set up </label>
+                                        <TextField sx={{ width: "100%" }} id="utilitiesSetUpID" value={"10/10/2004"} />
                                     </div>
                                 </div>
-                                
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > COA / DMV / Voter Update </label>
+                                        <TextField sx={{ width: "100%" }} id="voterUpdateID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > New State </label>
+                                        <TextField sx={{ width: "100%" }} id="newStateID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > New City </label>
+                                        <TextField sx={{ width: "100%" }} id="newCityID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Call status notes </label>
+                                        <TextField sx={{ width: "100%" }} id="cellStatusNotesID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Electric ACCT </label>
+                                        <TextField sx={{ width: "100%" }} id="electricACCTID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Gas ACCT </label>
+                                        <TextField sx={{ width: "100%" }} id="gasACCTID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Renters Insurance Policy </label>
+                                        <TextField sx={{ width: "100%" }} id="rentersInsurenceID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Electric ACCT </label>
+                                        <TextField sx={{ width: "100%" }} id="electricACCTID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Gas ACCT </label>
+                                        <TextField sx={{ width: "100%" }} id="gasACCTID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
                             </div>
 
                         </Box>
