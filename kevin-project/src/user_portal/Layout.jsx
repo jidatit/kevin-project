@@ -76,7 +76,7 @@ const Layout = () => {
                     {/* Right Navbar */}
                     <div
                         id="logo-sidebar"
-                        className={`w-64 absolute flex flex-col left-0 top-0 border-r-2 border-gray-300 transition-transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-white sm:translate-x-0 z-50`}
+                        className={`w-64 min-h-screen absolute flex flex-col left-0 top-0 border-r-2 border-gray-300 transition-transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-white sm:translate-x-0 z-50`}
                         aria-label="Sidebar"
                     >
                         <div onClick={toggleCloseSidebar} className="w-full h-60 flex justify-center items-center text-3xl font-bold border-b-2 border-gray-300 cursor-pointer">
@@ -137,8 +137,7 @@ const Layout = () => {
                                         'aria-labelledby': 'basic-button',
                                     }}
                                 >
-                                    {showNameInMenu && <MenuItem>Muhammad Umar</MenuItem>}
-                                    <MenuItem onClick={handleClose} className='gap-2' > <AccountBoxOutlinedIcon /> Profile</MenuItem>
+                                    {showNameInMenu && <MenuItem className='gap-2' > <AccountBoxOutlinedIcon /> Muhammad Umar</MenuItem>}
                                     <MenuItem onClick={NavToChangePass} className='gap-2' > <LockResetOutlinedIcon /> Change Password</MenuItem>
                                     <MenuItem onClick={logout} className='gap-2' > <LogoutOutlinedIcon /> Logout</MenuItem>
                                 </Menu>

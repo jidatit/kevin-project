@@ -1,5 +1,20 @@
 
 import React, { useState, useMemo } from "react";
+import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    overflow: 'auto',
+};
 
 const products = [
     {
@@ -26,134 +41,20 @@ const products = [
         detail: "View Details",
         csv: "Download CSV"
     },
-    {
-        fullName: "Muhammad Umar",
-        createdTime: "10:40 am",
-        solidDate: "10/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Ali Hussain",
-        createdTime: "12:30 am",
-        solidDate: "09/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Muhammad Umar",
-        createdTime: "10:40 am",
-        solidDate: "10/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Ali Hussain",
-        createdTime: "12:30 am",
-        solidDate: "09/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Muhammad Umar",
-        createdTime: "10:40 am",
-        solidDate: "10/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Ali Hussain",
-        createdTime: "12:30 am",
-        solidDate: "09/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Muhammad Umar",
-        createdTime: "10:40 am",
-        solidDate: "10/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Ali Hussain",
-        createdTime: "12:30 am",
-        solidDate: "09/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Muhammad Umar",
-        createdTime: "10:40 am",
-        solidDate: "10/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Ali Hussain",
-        createdTime: "12:30 am",
-        solidDate: "09/06/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
 ];
 const TableReact = () => {
+
     const [productList] = useState(products);
     const [rowsLimit] = useState(10);
     const [rowsToShow, setRowsToShow] = useState(productList.slice(0, rowsLimit));
     const [customPagination, setCustomPagination] = useState([]);
     const [totalPage] = useState(Math.ceil(productList?.length / rowsLimit));
     const [currentPage, setCurrentPage] = useState(0);
+
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
     const nextPage = () => {
         const startIndex = rowsLimit * (currentPage + 1);
         const endIndex = startIndex + rowsLimit;
@@ -161,6 +62,7 @@ const TableReact = () => {
         setRowsToShow(newArray);
         setCurrentPage(currentPage + 1);
     };
+
     const changePage = (value) => {
         const startIndex = value * rowsLimit;
         const endIndex = startIndex + rowsLimit;
@@ -168,6 +70,7 @@ const TableReact = () => {
         setRowsToShow(newArray);
         setCurrentPage(value);
     };
+
     const previousPage = () => {
         const startIndex = (currentPage - 1) * rowsLimit;
         const endIndex = startIndex + rowsLimit;
@@ -179,6 +82,7 @@ const TableReact = () => {
             setCurrentPage(0);
         }
     };
+
     useMemo(() => {
         setCustomPagination(
             Array(Math.ceil(productList?.length / rowsLimit)).fill(null)
@@ -190,7 +94,6 @@ const TableReact = () => {
         <>
             <div className=' w-full flex flex-col justify-center items-center'>
                 <div className='w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]'>
-
                     <form className="h-auto mt-[-12px]">
                         <select id="countries" className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4" defaultValue="">
                             <option value="" disabled>Filter by Time</option>
@@ -199,7 +102,6 @@ const TableReact = () => {
                             <option value="30">Last Month</option>
                         </select>
                     </form>
-
                     <form className="h-auto mt-[-12px]">
                         <select id="countries" className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4" defaultValue="">
                             <option value="" disabled>Filter by Solid Date</option>
@@ -208,12 +110,12 @@ const TableReact = () => {
                             <option value="30">Last Month</option>
                         </select>
                     </form>
-
                 </div>
             </div>
 
             <div className="h-full bg-white flex items-center justify-center py-4">
                 <div className="w-full max-w-5xl px-2">
+
                     <div className="w-full overflow-x-scroll md:overflow-auto  max-w-7xl 2xl:max-w-none mt-2">
                         <table className="table-auto overflow-scroll md:overflow-auto w-full text-left font-inter border ">
                             <thead className="rounded-lg text-base text-white font-semibold w-full border-t-2 border-gray-300 pt-6 pb-6">
@@ -293,7 +195,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } min-w-[170px]`}
                                         >
-                                            <button className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">{data?.detail}</button>
+                                            <button onClick={handleOpen} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">{data?.detail}</button>
 
                                         </td>
                                         <td
@@ -312,7 +214,8 @@ const TableReact = () => {
                             </tbody>
                         </table>
                     </div>
-                    <div className="w-full flex justify-center sm:justify-between xl:flex-row flex-col gap-10 mt-5 lg:mt-8 px-0 lg:px-4 xl:px-4 items-center">
+
+                    <div className="w-full flex justify-center sm:justify-between xl:flex-row flex-col gap-10 mt-10 lg:mt-8 px-0 lg:px-4 xl:px-4 items-center">
                         <div className="text-base text-center">
                             Showing
                             <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg" > {currentPage == 0 ? 1 : currentPage * rowsLimit + 1} </span>
@@ -365,6 +268,96 @@ const TableReact = () => {
                             </ul>
                         </div>
                     </div>
+
+                    <Modal
+                        open={open}
+                        onClose={handleClose}
+                        aria-describedby="modal-data"
+                    >
+                        <Box sx={style} noValidate>
+
+                            <div id="modal-data" className="w-full max-h-[80vh] flex flex-col justify-center items-center gap-3" >
+                                
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Record ID </label>
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Full Name </label>
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Est Move Date </label>
+                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Record ID </label>
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Full Name </label>
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Est Move Date </label>
+                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Record ID </label>
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Full Name </label>
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Est Move Date </label>
+                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Record ID </label>
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Full Name </label>
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Est Move Date </label>
+                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Record ID </label>
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                    </div>
+                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Full Name </label>
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                    </div>
+                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
+                                        <label className="text-sm font-semibold" > Est Move Date </label>
+                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                    </div>
+                                </div>
+                                
+                            </div>
+
+                        </Box>
+                    </Modal>
+
                 </div>
             </div>
         </>
