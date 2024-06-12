@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { TextField } from '@mui/material';
+
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../Firebase';
 import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
-import bcrypt from 'bcryptjs';
 
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

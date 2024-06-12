@@ -16,6 +16,7 @@ import UserPasswordChange from './user_portal/components/UserPasswordChange'
 import AdminLayout from './admin_portal/Layout'
 import AdminDashbaordUsers from './admin_portal/pages/Users'
 import AdminPasswordChange from './admin_portal/components/AdminPasswordChange'
+import AddReferral from './admin_portal/components/AddReferral';
 
 function App() {
 
@@ -41,6 +42,7 @@ function App() {
           <Route path='/admin_portal' element={<AdminLayout />}>
             <Route index element={<AdminDashbaordUsers />} />
             <Route path='changePassword' element={<AdminPasswordChange/>} />
+            <Route path='addreferral/:id' element={<AddReferral/>} />
             <Route path='logout' element={<Logout />} />
           </Route>
 

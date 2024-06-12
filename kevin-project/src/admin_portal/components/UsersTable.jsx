@@ -1,10 +1,16 @@
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import { TextField, Button } from '@mui/material';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { maxHeight } from "@mui/system";
+import { collection, doc, getDocs, getDoc, updateDoc } from "firebase/firestore";
+import { db } from '../../../Firebase';
+
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const style = {
     position: 'absolute',
@@ -18,56 +24,42 @@ const style = {
     maxHeight: '90vh',
 };
 
-const products = [
-    {
-        firstName: "Muhammad",
-        lastName: "Umar",
-        email: "muhammadumar695@gmail.com",
-        phoneNumber: "10/06/2024",
-        status: "Active",
-        referralLink: "View Details",
-        userType: "Download CSV",
-        action: "Change Details"
-    },
-    {
-        firstName: "Muhammad",
-        lastName: "Umar",
-        email: "muhammadumar695@gmail.com",
-        phoneNumber: "10/06/2024",
-        status: "Active",
-        referralLink: "View Details",
-        userType: "Download CSV",
-        action: "Change Details"
-    },
-    {
-        firstName: "Muhammad",
-        lastName: "Umar",
-        email: "muhammadumar695@gmail.com",
-        phoneNumber: "10/06/2024",
-        status: "Active",
-        referralLink: "View Details",
-        userType: "Download CSV",
-        action: "Change Details"
-    },
-];
-
 const UsersTable = () => {
 
-    const [productList] = useState(products);
-    const [rowsLimit] = useState(10);
-    const [rowsToShow, setRowsToShow] = useState(productList.slice(0, rowsLimit));
+    const navigate = useNavigate();
+
+    const [productList, setProductList] = useState([]);
+    const [rowsLimit] = useState(5);
+    const [rowsToShow, setRowsToShow] = useState([]);
     const [customPagination, setCustomPagination] = useState([]);
-    const [totalPage] = useState(Math.ceil(productList?.length / rowsLimit));
     const [currentPage, setCurrentPage] = useState(0);
 
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
+    const [userID, SetUserID] = useState('');
+    const handleOpen = (id) => {
+        setOpen(true);
+        SetUserID(id);
+    }
     const handleClose = () => setOpen(false);
+
+    const fetchUsersData = async () => {
+        try {
+            const usersRef = collection(db, 'users');
+            const queryShapshot = await getDocs(usersRef);
+            const usersData = [];
+            queryShapshot.forEach((doc) => {
+                usersData.push({ id: doc.id, ...doc.data() });
+            });
+            setProductList(usersData);
+        } catch (error) {
+            console.error("Error fetching users data : ", error);
+        }
+    }
 
     const nextPage = () => {
         const startIndex = rowsLimit * (currentPage + 1);
         const endIndex = startIndex + rowsLimit;
-        const newArray = products.slice(startIndex, endIndex);
+        const newArray = productList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(currentPage + 1);
     };
@@ -75,7 +67,7 @@ const UsersTable = () => {
     const changePage = (value) => {
         const startIndex = value * rowsLimit;
         const endIndex = startIndex + rowsLimit;
-        const newArray = products.slice(startIndex, endIndex);
+        const newArray = productList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(value);
     };
@@ -83,7 +75,7 @@ const UsersTable = () => {
     const previousPage = () => {
         const startIndex = (currentPage - 1) * rowsLimit;
         const endIndex = startIndex + rowsLimit;
-        const newArray = products.slice(startIndex, endIndex);
+        const newArray = productList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -93,14 +85,126 @@ const UsersTable = () => {
     };
 
     useMemo(() => {
-        setCustomPagination(
-            Array(Math.ceil(productList?.length / rowsLimit)).fill(null)
-        );
+        setCustomPagination(Array(Math.ceil(productList?.length / rowsLimit)).fill(null));
     }, []);
+
+    useEffect(() => {
+        fetchUsersData();
+    }, []);
+
+    useEffect(() => {
+        setRowsToShow(productList.slice(0, rowsLimit));
+        setCustomPagination([...Array(totalPage).keys()]);
+    }, [productList]);
+
+    const totalPage = useMemo(() => Math.ceil(productList.length / rowsLimit), [productList.length, rowsLimit]);
+
+
+    const [isEditingFirst, setIsEditingFirst] = useState(false);
+    const [isEditingSecond, setIsEditingSecond] = useState(false);
+    const [isEditingThird, setIsEditingThird] = useState(false);
+    const [isEditingContact, setIsEditingContact] = useState(false);
+
+    const [firstInputValue, setFirstInputValue] = useState('');
+    const [firstFetchedLink, setFirstFetchedLink] = useState('');
+
+    const [secondInputValue, setSecondInputValue] = useState('');
+    const [secondFetchedLink, setSecondFetchedLink] = useState('');
+
+    const [thirdInputValue, setThirdInputValue] = useState('');
+    const [thirdFetchedLink, setThirdFetchedLink] = useState('');
+
+    const [contactInputValue, setContactInputValue] = useState('');
+    const [contactFetchedLink, setContactFetchedLink] = useState('');
+
+    const handleFirstIconClick = () => {
+        setIsEditingFirst(!isEditingFirst);
+    };
+
+    const handleSecondIconClick = () => {
+        setIsEditingSecond(!isEditingSecond);
+    };
+
+    const handleThirdIconClick = () => {
+        setIsEditingThird(!isEditingThird);
+    };
+
+    const handleContactIconClick = () => {
+        setIsEditingContact(!isEditingContact);
+    };
+
+    const handleFirstLink = async () => {
+        try {
+            const userRef = doc(db, 'users', userID);
+            await updateDoc(userRef, { quickLinkFirst: firstInputValue });
+            individualUserData();
+            toast.success("Link Added Successfully");
+        } catch (error) {
+            toast.error("Error Adding Link");
+        } finally {
+            setFirstInputValue('');
+        }
+    };
+
+    const handleSecondLink = async () => {
+        try {
+            const userRef = doc(db, 'users', userID);
+            await updateDoc(userRef, { quickLinkSecond: secondInputValue });
+            individualUserData();
+            toast.success("Link Added Successfully");
+        } catch (error) {
+            toast.error("Error Adding Link");
+        } finally {
+            setSecondInputValue('');
+        }
+    };
+
+    const handleThirdLink = async () => {
+        try {
+            const userRef = doc(db, 'users', userID);
+            await updateDoc(userRef, { quickLinkThird: thirdInputValue });
+            individualUserData();
+            toast.success("Link Added Successfully");
+        } catch (error) {
+            toast.error("Error Adding Link");
+        } finally {
+            setThirdInputValue('');
+        }
+    };
+
+    const handleContactLink = async () => {
+        try {
+            const userRef = doc(db, 'users', userID);
+            await updateDoc(userRef, { quickLinkContact: contactInputValue });
+            individualUserData();
+            toast.success("Link Added Successfully");
+        } catch (error) {
+            toast.error("Error Adding Link");
+        } finally {
+            setContactInputValue('');
+        }
+    };
+
+    const individualUserData = async () => {
+        const userRef = doc(db, 'users', userID);
+        const updatedDoc = await getDoc(userRef);
+        const data = updatedDoc.data();
+        setFirstFetchedLink(data.quickLinkFirst);
+        setSecondFetchedLink(data.quickLinkSecond);
+        setThirdFetchedLink(data.quickLinkThird);
+        setContactFetchedLink(data.quickLinkContact);
+    };
+
+    useEffect(() => {
+        if (userID) {
+            individualUserData();
+        }
+    })
 
     return (
         <>
             <div className=' w-full flex flex-col justify-center items-center'>
+                <ToastContainer />
                 <div className='w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]'>
                     <form className="h-auto mt-[-12px]">
                         <select id="countries" className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4" defaultValue="">
@@ -155,7 +259,8 @@ const UsersTable = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rowsToShow?.map((data, index) => (
+                                {rowsToShow && rowsToShow?.map((data, index) => (
+
                                     <tr
                                         className={`${index % 2 == 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
                                             }`}
@@ -169,7 +274,8 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.firstName}
+                                            {data?.name.split(' ')[0]}
+
                                         </td>
                                         <td
                                             className={`py-2 px-3 font-normal text-base ${index == 0
@@ -179,7 +285,7 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.lastName}
+                                            {data?.name.split(' ')[1]}
                                         </td>
                                         <td
                                             className={`py-2 px-3 font-normal text-base ${index == 0
@@ -209,17 +315,7 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.status}
-                                        </td>
-                                        <td
-                                            className={`py-2 px-3 text-base  font-normal ${index == 0
-                                                ? "border-t-2 border-gray-300"
-                                                : index == rowsToShow?.length
-                                                    ? "border-y"
-                                                    : "border-t"
-                                                } whitespace-nowrap`}
-                                        >
-                                            {data?.referralLink}
+                                            {"Active"}
                                         </td>
                                         <td
                                             className={`py-2 px-3 text-base  font-normal ${index == 0
@@ -232,6 +328,16 @@ const UsersTable = () => {
                                             {data?.userType}
                                         </td>
                                         <td
+                                            className={`py-2 px-3 text-base  font-normal ${index == 0
+                                                ? "border-t-2 border-gray-300"
+                                                : index == rowsToShow?.length
+                                                    ? "border-y"
+                                                    : "border-t"
+                                                } whitespace-nowrap`}
+                                        >
+                                            {data.referralLink ? data?.referralLink : " - "}
+                                        </td>
+                                        <td
                                             className={`py-2 px-3 text-base font-normal ${index == 0
                                                 ? "border-t-2 border-gray-300"
                                                 : index == rowsToShow?.length
@@ -239,8 +345,8 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } min-w-[170px]`}
                                         >
-                                            <button onClick={handleOpen} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">{data?.action}</button>
-
+                                            {/* <button onClick={handleOpen} value={data?.id} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"> Change Details </button> */}
+                                            <button onClick={() => handleOpen(data?.id)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"> Change Details </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -336,45 +442,128 @@ const UsersTable = () => {
                                                 </div>
 
                                                 <div className='w-auto lg:w-[35%] mt-5 flex justify-center items-center' >
-                                                    <button className='font-semibold text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' > Add Discount Post </button>
+                                                    <button className='font-semibold text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' > Save Changes </button>
                                                 </div>
 
                                             </div>
                                         </div>
 
                                         <div className=' w-full flex flex-col justify-center items-center mt-10'>
-                                            <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'> Quick Links </div>
-
+                                            <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'>
+                                                Quick Links
+                                            </div>
                                             <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col lg:flex-row justify-around items-start gap-3 lg:gap-0' >
-                                                <div className="w-full flex flex-row justify-center items-center" >
-                                                    <div className='w-[90%] font-semibold text-lg py-2 px-10 text-[#6DB23A] bg-gray-200 cursor-pointer'>
-                                                        Click Here to Schedule a Call
+                                                {/* Links */}
+                                                <div className="w-full flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-center items-center ">
+                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
+                                                            <div className="text-[#6DB23A]" >Click Here to Schedule a Call</div>
+                                                            <div className="text-[#599032]"  > Link Set : {firstFetchedLink} </div>
+                                                        </div>
+                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                            <EditOutlinedIcon
+                                                                style={{ fontSize: '40px' }}
+                                                                className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
+                                                                onClick={handleFirstIconClick}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className='w-auto h-auto flex justify-start items-start p-4' >
-                                                        <EditOutlinedIcon style={{ fontSize: '40px' }} className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer' />
-                                                    </div>
+                                                    {isEditingFirst && (
+                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                            <TextField
+                                                                minRows={3}
+                                                                placeholder="Enter the link"
+                                                                value={firstInputValue}
+                                                                onChange={(e) => setFirstInputValue(e.target.value)}
+                                                                style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
+                                                            />
+                                                            <Button
+                                                                variant="contained"
+                                                                style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
+                                                                onClick={handleFirstLink}
+                                                            >
+                                                                Submit
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div className="w-full flex flex-row justify-center items-center" >
-                                                    <div className='font-semibold w-full lg:w-auto text-lg py-2 px-10 text-[#6DB23A] bg-gray-200 cursor-pointer'>
-                                                        Go to Settings in Concierge
+                                                {/* Links */}
+
+                                                {/* Links */}
+                                                <div className="w-full flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-center items-center ">
+                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
+                                                            <div className="text-[#6DB23A]" > Go to Settings in Concierge </div>
+                                                            <div className="text-[#599032]"  > Link Set : {secondFetchedLink} </div>
+                                                        </div>
+                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                            <EditOutlinedIcon
+                                                                style={{ fontSize: '40px' }}
+                                                                className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
+                                                                onClick={handleSecondIconClick}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className='w-auto h-auto flex justify-start items-start p-4' >
-                                                        <EditOutlinedIcon style={{ fontSize: '40px' }} className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer' />
-                                                    </div>
+                                                    {isEditingSecond && (
+                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                            <TextField
+                                                                minRows={3}
+                                                                placeholder="Enter the link"
+                                                                value={secondInputValue}
+                                                                onChange={(e) => setSecondInputValue(e.target.value)}
+                                                                style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
+                                                            />
+                                                            <Button
+                                                                variant="contained"
+                                                                style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
+                                                                onClick={handleSecondLink}
+                                                            >
+                                                                Submit
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
+                                                {/* Links */}
                                             </div>
 
                                             <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col lg:flex-row justify-center items-start mt-[-6px] lg:mt-0 gap-3 lg:gap-0' >
-                                                <div className="w-full lg:w-[50%] flex flex-row justify-center items-center" >
-                                                    <div className='font-semibold w-full lg:w-auto text-lg py-2 px-10 text-[#6DB23A] bg-gray-200 cursor-pointer'>
-                                                        Email Support Team
+                                                {/* Links */}
+                                                <div className="w-full lg:w-[50%] flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-center items-center ">
+                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
+                                                            <div className="text-[#6DB23A]" >Email Support Team</div>
+                                                            <div className="text-[#599032]"  > Link Set : {thirdFetchedLink} </div>
+                                                        </div>
+                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                            <EditOutlinedIcon
+                                                                style={{ fontSize: '40px' }}
+                                                                className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
+                                                                onClick={handleThirdIconClick}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className='w-auto h-auto flex justify-start items-start p-4' >
-                                                        <EditOutlinedIcon style={{ fontSize: '40px' }} className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer' />
-                                                    </div>
+                                                    {isEditingThird && (
+                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                            <TextField
+                                                                minRows={3}
+                                                                placeholder="Enter the link"
+                                                                value={thirdInputValue}
+                                                                onChange={(e) => setThirdInputValue(e.target.value)}
+                                                                style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
+                                                            />
+                                                            <Button
+                                                                variant="contained"
+                                                                style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
+                                                                onClick={handleThirdLink}
+                                                            >
+                                                                Submit
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
+                                                {/* Links */}
                                                 <div className="w-full lg:w-[50%] py-3 flex flex-row justify-center items-center">
-                                                    <button className='font-semibold w-auto text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' >
+                                                    <button onClick={() => navigate(`/admin_portal/addreferral/${userID}`)} className='font-semibold w-auto text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' >
                                                         Add Referral Link
                                                     </button>
                                                 </div>
@@ -384,19 +573,48 @@ const UsersTable = () => {
                                         <div className=' w-full flex flex-col justify-center items-center mt-10'>
                                             <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'> Contact My Account Executive </div>
                                             <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col lg:flex-row justify-start items-start mt-[-6px] lg:mt-0 gap-3 lg:gap-0' >
-                                                <div className="w-full lg:w-[50%] flex flex-row justify-center items-center" >
-                                                    <div className='font-semibold w-full lg:w-auto text-lg py-2 px-10 text-[#6DB23A] bg-gray-200 cursor-pointer'>
-                                                        1-877-4677 ext. 988
+                                                
+        
+
+                                                {/* Links */}
+                                                <div className="w-full h-auto lg:w-[50%] flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-center items-center ">
+                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
+                                                            <div className="text-[#6DB23A]" >1-877-4677 ext. 988</div>
+                                                            <div className="text-[#599032]"  > Link Set : {contactFetchedLink} </div>
+                                                        </div>
+                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                            <EditOutlinedIcon
+                                                                style={{ fontSize: '40px' }}
+                                                                className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
+                                                                onClick={handleContactIconClick}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className='w-auto h-auto flex justify-start items-start p-4' >
-                                                        <EditOutlinedIcon style={{ fontSize: '40px' }} className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer' />
-                                                    </div>
+                                                    {isEditingContact && (
+                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                            <TextField
+                                                                minRows={3}
+                                                                placeholder="Enter the link"
+                                                                value={contactInputValue}
+                                                                onChange={(e) => setContactInputValue(e.target.value)}
+                                                                style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
+                                                            />
+                                                            <Button
+                                                                variant="contained"
+                                                                style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
+                                                                onClick={handleContactLink}
+                                                            >
+                                                                Submit
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
+                                                {/* Links */}
                                             </div>
                                         </div>
 
                                     </div>
-
                                 </div>
                                 {/* Current Working Area */}
 
@@ -406,7 +624,6 @@ const UsersTable = () => {
                 </div>
             </div>
         </>
-
     );
 };
 
