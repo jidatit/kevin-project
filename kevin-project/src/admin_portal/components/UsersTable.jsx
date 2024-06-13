@@ -8,9 +8,9 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { maxHeight } from "@mui/system";
 import { collection, doc, getDocs, getDoc, updateDoc } from "firebase/firestore";
 import { db } from '../../../Firebase';
-
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AddReferral from "./AddReferral";
 
 const style = {
     position: 'absolute',
@@ -34,13 +34,21 @@ const UsersTable = () => {
     const [customPagination, setCustomPagination] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
 
-    const [open, setOpen] = useState(false);
     const [userID, SetUserID] = useState('');
+
+    const [open, setOpen] = useState(false);
+    const [openChild, setOpenChild] = useState(false);
+    
     const handleOpen = (id) => {
         setOpen(true);
         SetUserID(id);
     }
+    const handleOpenChild = (id) => {
+        setOpenChild(true);
+    }
+
     const handleClose = () => setOpen(false);
+    const handleCloseChild = () => setOpenChild(false);
 
     const fetchUsersData = async () => {
         try {
@@ -99,6 +107,33 @@ const UsersTable = () => {
 
     const totalPage = useMemo(() => Math.ceil(productList.length / rowsLimit), [productList.length, rowsLimit]);
 
+    const [isEditingVideo, setIsEditingVideo] = useState(false);
+    const [videoInputValue, setVideoInputValue] = useState('');
+    const [videoFetchedLink, setVideoFetchedLink] = useState('');
+
+    const handleVideoIconClick = () => {
+        setIsEditingVideo(!isEditingVideo);
+    };
+
+    const handleVideoLink = async () => {
+        try {
+            const userRef = doc(db, 'users', userID);
+            await updateDoc(userRef, { quickLinkVideo: videoInputValue });
+            individualUserData();
+            toast.success("Link Added Successfully");
+        } catch (error) {
+            toast.error("Error Adding Link");
+        } finally {
+            setVideoInputValue('');
+            setIsEditingVideo(false);
+        }
+    };
+
+    const getEmbedURL = (url) => {
+        const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regExp);
+        return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+    };
 
     const [isEditingFirst, setIsEditingFirst] = useState(false);
     const [isEditingSecond, setIsEditingSecond] = useState(false);
@@ -116,6 +151,7 @@ const UsersTable = () => {
 
     const [contactInputValue, setContactInputValue] = useState('');
     const [contactFetchedLink, setContactFetchedLink] = useState('');
+
 
     const handleFirstIconClick = () => {
         setIsEditingFirst(!isEditingFirst);
@@ -189,6 +225,7 @@ const UsersTable = () => {
         const userRef = doc(db, 'users', userID);
         const updatedDoc = await getDoc(userRef);
         const data = updatedDoc.data();
+        setVideoFetchedLink(data.quickLinkVideo);
         setFirstFetchedLink(data.quickLinkFirst);
         setSecondFetchedLink(data.quickLinkSecond);
         setThirdFetchedLink(data.quickLinkThird);
@@ -345,7 +382,6 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } min-w-[170px]`}
                                         >
-                                            {/* <button onClick={handleOpen} value={data?.id} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"> Change Details </button> */}
                                             <button onClick={() => handleOpen(data?.id)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"> Change Details </button>
                                         </td>
                                     </tr>
@@ -409,6 +445,14 @@ const UsersTable = () => {
                     </div>
 
                     <Modal
+                        open={openChild}
+                        onClose={handleCloseChild}
+                        aria-describedby="modal-data"
+                    >
+                        <AddReferral/>
+                    </Modal>
+
+                    <Modal
                         open={open}
                         onClose={handleClose}
                         aria-describedby="modal-data"
@@ -430,22 +474,58 @@ const UsersTable = () => {
 
                                         <div className=' w-full flex flex-col justify-center items-center'>
                                             <div className='w-full h-12 rounded-t-lg bg-[#6DB23A]'></div>
-                                            <div className="w-full h-auto flex flex-col lg:flex-row justify-center items-center gap-5 my-5" >
 
-                                                <div className='w-full lg:w-[65%] h-60 flex flex-row justify-start items-start' >
-                                                    <div className='w-[85%] h-64 rounded-xl bg-gray-200 flex justify-center items-center' >
-                                                        <div className='font-semibold text-3xl' > Video will Display Here </div>
+                                            <div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-5 my-5 px-2">
+                                                <div className='w-full lg:w-[65%] h-auto flex flex-row justify-between lg:justify-center items-start border-4 border-red-600'>
+                                                    <div className='w-[85%] h-64 rounded-xl bg-gray-200 flex justify-center items-center'>
+                                                        {videoFetchedLink ? (
+                                                            <iframe
+                                                                className="rounded-xl"
+                                                                width="100%"
+                                                                height="100%"
+                                                                src={getEmbedURL(videoFetchedLink)}
+                                                                title="Embedded Video"
+                                                                frameBorder="0"
+                                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                allowFullScreen
+                                                            ></iframe>
+                                                        ) : (
+                                                            <div className='font-semibold text-3xl'>Video</div>
+                                                        )}
                                                     </div>
-                                                    <div className='w-auto h-auto flex justify-start items-start p-4' >
-                                                        <EditOutlinedIcon style={{ fontSize: '40px' }} className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer' />
+                                                    <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                        <EditOutlinedIcon
+                                                            onClick={handleVideoIconClick}
+                                                            style={{ fontSize: '40px' }}
+                                                            className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
+                                                        />
                                                     </div>
                                                 </div>
-
-                                                <div className='w-auto lg:w-[35%] mt-5 flex justify-center items-center' >
-                                                    <button className='font-semibold text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' > Save Changes </button>
+                                                <div className='w-full lg:w-[35%] h-auto flex flex-col justify-start items-start pl-2 lg:pl-0 mt-2'>
+                                                    <div className="text-[#599032] text-xl font-bold py-2 lg:py-1">
+                                                        {userID && videoFetchedLink ? (<div className="text-xl font-semibold cursor-pointer underline break-words" >  {videoFetchedLink} </div>) : (<span> No Link Yet </span>)}
+                                                    </div>
+                                                    {isEditingVideo && (
+                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                            <TextField
+                                                                minRows={3}
+                                                                placeholder="Enter the link"
+                                                                value={videoInputValue}
+                                                                onChange={(e) => setVideoInputValue(e.target.value)}
+                                                                style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
+                                                            />
+                                                            <Button
+                                                                variant="contained"
+                                                                style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
+                                                                onClick={handleVideoLink}
+                                                            >
+                                                                Submit
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
-
                                             </div>
+
                                         </div>
 
                                         <div className=' w-full flex flex-col justify-center items-center mt-10'>
@@ -563,18 +643,16 @@ const UsersTable = () => {
                                                 </div>
                                                 {/* Links */}
                                                 <div className="w-full lg:w-[50%] py-3 flex flex-row justify-center items-center">
-                                                    <button onClick={() => navigate(`/admin_portal/addreferral/${userID}`)} className='font-semibold w-auto text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' >
+                                                    <button onClick={handleOpenChild} className='font-semibold w-auto text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' >
                                                         Add Referral Link
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className=' w-full flex flex-col justify-center items-center mt-10'>
+                                        <div className=' w-full flex flex-col justify-center items-center my-10'>
                                             <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'> Contact My Account Executive </div>
-                                            <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col lg:flex-row justify-start items-start mt-[-6px] lg:mt-0 gap-3 lg:gap-0' >
-                                                
-        
+                                            <div className='w-[95%] h-auto my-5 flex flex-col justify-start items-start gap-3' >
 
                                                 {/* Links */}
                                                 <div className="w-full h-auto lg:w-[50%] flex flex-col justify-center items-center">
@@ -621,6 +699,7 @@ const UsersTable = () => {
                             </div>
                         </Box>
                     </Modal>
+
                 </div>
             </div>
         </>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, Navigate } from 'react-router-dom';
+import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from '../../AuthContext';
+import { db } from '../../Firebase';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
@@ -30,6 +32,24 @@ const Layout = () => {
     const open = Boolean(anchorEl);
     const navigate = useNavigate();
 
+    const userID = currentUser?.uid;
+    const [userData, setUserData] = useState(null);
+
+    const fetchUserData = async () => {
+        if (!userID) return;
+        try {
+            const userRef = doc(db, 'users', userID);
+            const dataDoc = await getDoc(userRef);
+            if (dataDoc.exists()) {
+                setUserData(dataDoc.data());
+            } else {
+                console.log("No such document!");
+            }
+        } catch (error) {
+            console.error("Error fetching user data: ", error);
+        }
+    };
+
     const handleResize = useCallback(() => {
         const isDesktop = window.innerWidth > 768;
         setDisplayName(isDesktop);
@@ -43,6 +63,12 @@ const Layout = () => {
             window.removeEventListener('resize', handleResize);
         };
     }, [handleResize]);
+
+    useEffect(() => {
+        if (userID) {
+            fetchUserData();
+        }
+    }, [userID]);
 
     if (loading) {
         return <Loader />;
@@ -118,7 +144,7 @@ const Layout = () => {
                             </div>
                             <div className="flex flex-cols justify-center items-center gap-0 lg:gap-2">
                                 <Avatar src={UserAvatar} alt="Remy Sharp" />
-                                {displayName && <h1 className="text-base font-semibold pl-4">Muhammad Umar</h1>}
+                                {displayName && <h1 className="text-base font-semibold pl-4"> {userData ? userData.name : ''} </h1>}
                                 <Button
                                     id="basic-button"
                                     aria-controls={open ? 'basic-menu' : undefined}
@@ -137,13 +163,13 @@ const Layout = () => {
                                         'aria-labelledby': 'basic-button',
                                     }}
                                 >
-                                    {showNameInMenu && <MenuItem className='gap-2' > <AccountBoxOutlinedIcon /> Muhammad Umar</MenuItem>}
+                                    {showNameInMenu && <MenuItem className='gap-2' > <AccountBoxOutlinedIcon /> {userData ? userData.name : ''}</MenuItem>}
                                     <MenuItem onClick={NavToChangePass} className='gap-2' > <LockResetOutlinedIcon /> Change Password</MenuItem>
                                     <MenuItem onClick={logout} className='gap-2' > <LogoutOutlinedIcon /> Logout</MenuItem>
                                 </Menu>
                             </div>
                         </div>
-                        <div className="w-full py-4 px-10 bg-[#F9FFFC]">
+                        <div className="w-full py-4 px-4 lg:px-10 bg-[#F9FFFC]">
                             <Outlet />
                         </div>
                     </div>
