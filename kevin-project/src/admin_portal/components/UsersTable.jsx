@@ -765,7 +765,7 @@ const UsersTable = () => {
                                                                 {userID && contactFetchedLink ? (
                                                                     <Link
                                                                         to={contactFetchedLink}
-                                                                        className='underline cursor-pointer break-words'
+                                                                        className='cursor-pointer break-words'
                                                                         style={{ maxWidth: '100%', wordBreak: 'break-word' }}
                                                                     >
                                                                         {contactFetchedLink}

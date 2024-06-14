@@ -97,7 +97,7 @@ const Dashboard = () => {
                         <div className='w-full lg:max-w-[50%] py-3 px-5 lg:px-8 mt-3 bg-gray-200 rounded-xl'>
                             <div className='text-lg text-[#6DB23A] font-bold'>Contact Number</div>
                             <div className='text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer' >
-                                {userData && userData.quickLinkContact ? (<Link href={userData.quickLinkContact} className='underline break-words'> {userData.quickLinkContact} </Link>) : (<span> No Number Available </span>)}
+                                {userData && userData.quickLinkContact ? (<Link href={userData.quickLinkContact} className='break-words'> {userData.quickLinkContact} </Link>) : (<span> No Number Available </span>)}
                             </div>
                         </div>
                     </div>
