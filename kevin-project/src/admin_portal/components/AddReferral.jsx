@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useState, useEffect, forwardRef } from 'react'
 import { TextField } from '@mui/material'
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../Firebase';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const AddReferral = () => {
+const AddReferral = forwardRef(({ id, close }, ref) => {
 
-    const { id } = useParams();
     const [userID, setUserID] = useState('');
     const [referralText, setReferralText] = useState('');
     const [isAddingReferral, setIsAddingReferral] = useState(false);
@@ -26,7 +25,7 @@ const AddReferral = () => {
             await updateDoc(userRef, { referralLink: referralText });
             toast.success("Referral Added Successfully");
         } catch (error) {
-            toast.error("Error Adding Referral : ", error);
+            toast.error("Error Adding Referral: ", error);
         }
         finally {
             setReferralText('');
@@ -38,12 +37,19 @@ const AddReferral = () => {
         if (id) {
             setUserID(id);
         }
-    });
+    }, [id]);
 
     return (
         <>
-            <div className='w-full h-auto flex flex-col justify-center items-center'>
+            <div ref={ref} tabIndex={-1} className='w-[80%] h-auto flex flex-col justify-center items-center bg-[white] p-10 absolute top-[20%] left-[10%]'>
                 <ToastContainer />
+
+                <div className="w-full h-auto flex flex-col justify-end items-end px-6 pt-6 py-3">
+                    <div onClick={close} className="cursor-pointer">
+                        <CloseOutlinedIcon style={{ fontSize: '40px' }} className='text-black hover:text-[#6c6969]' />
+                    </div>
+                </div>
+
                 <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'> Add Referral </div>
 
                 <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col justify-around items-start gap-3'>
@@ -52,6 +58,7 @@ const AddReferral = () => {
                         <TextField
                             fullWidth
                             name='link'
+                            placeholder='Please Enter the Referral'
                             type='text'
                             value={referralText}
                             onChange={(e) => setReferralText(e.target.value)}
@@ -71,6 +78,6 @@ const AddReferral = () => {
             </div>
         </>
     )
-}
+});
 
-export default AddReferral
+export default AddReferral;

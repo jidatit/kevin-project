@@ -42,7 +42,7 @@ function App() {
           <Route path='/admin_portal' element={<AdminLayout />}>
             <Route index element={<AdminDashbaordUsers />} />
             <Route path='changePassword' element={<AdminPasswordChange/>} />
-            <Route path='addreferral/:id' element={<AddReferral/>} />
+            <Route path='addreferral' element={<AddReferral/>} />
             <Route path='logout' element={<Logout />} />
           </Route>
 

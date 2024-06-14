@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import { TextField, Button } from '@mui/material';
@@ -24,9 +24,21 @@ const style = {
     maxHeight: '90vh',
 };
 
-const UsersTable = () => {
+const styleReferral = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    bgcolor: 'background.paper',
+    border: '1px solid #000',
+    borderRadius: '8px',
+    boxShadow: 24,
+    overflow: 'auto',
+    maxHeight: '90vh',
+};
 
-    const navigate = useNavigate();
+
+const UsersTable = () => {
 
     const [productList, setProductList] = useState([]);
     const [rowsLimit] = useState(5);
@@ -38,17 +50,33 @@ const UsersTable = () => {
 
     const [open, setOpen] = useState(false);
     const [openChild, setOpenChild] = useState(false);
-    
+
     const handleOpen = (id) => {
         setOpen(true);
         SetUserID(id);
     }
+
     const handleOpenChild = (id) => {
         setOpenChild(true);
     }
 
     const handleClose = () => setOpen(false);
     const handleCloseChild = () => setOpenChild(false);
+
+    const [openReferral, setOpenReferral] = useState(false);
+    const [fetchReferral, setFetchReferral] = useState('');
+    const handleOpenReferral = async (id) => {
+        setOpenReferral(true);
+        try {
+            const userRef = doc(db, 'users', id);
+            const updatedDoc = await getDoc(userRef);
+            const data = updatedDoc.data();
+            setFetchReferral(data.referralLink);
+        } catch (error) {
+            console.log("Error : ", error);
+        }
+    };
+    const handleCloseReferral = () => setOpenReferral(false);
 
     const fetchUsersData = async () => {
         try {
@@ -179,6 +207,7 @@ const UsersTable = () => {
             toast.error("Error Adding Link");
         } finally {
             setFirstInputValue('');
+            setIsEditingFirst(false);
         }
     };
 
@@ -192,6 +221,7 @@ const UsersTable = () => {
             toast.error("Error Adding Link");
         } finally {
             setSecondInputValue('');
+            setIsEditingSecond(false);
         }
     };
 
@@ -205,6 +235,7 @@ const UsersTable = () => {
             toast.error("Error Adding Link");
         } finally {
             setThirdInputValue('');
+            setIsEditingThird(false);
         }
     };
 
@@ -218,6 +249,7 @@ const UsersTable = () => {
             toast.error("Error Adding Link");
         } finally {
             setContactInputValue('');
+            setIsEditingContact(false);
         }
     };
 
@@ -263,7 +295,7 @@ const UsersTable = () => {
             </div>
 
             <div className="h-full bg-white flex items-center justify-center py-4">
-                <div className="w-full max-w-5xl px-2">
+                <div className="w-full px-2">
 
                     <div className="w-full overflow-x-scroll md:overflow-auto  max-w-7xl 2xl:max-w-none mt-2">
                         <table className="table-auto overflow-scroll md:overflow-auto w-full text-left font-inter border ">
@@ -372,7 +404,8 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data.referralLink ? data?.referralLink : " - "}
+                                            {/* {data.referralLink ? data?.referralLink : " - "} */}
+                                            <button onClick={() => handleOpenReferral(data?.id)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"> View Referral </button>
                                         </td>
                                         <td
                                             className={`py-2 px-3 text-base font-normal ${index == 0
@@ -444,14 +477,40 @@ const UsersTable = () => {
                         </div>
                     </div>
 
+                    {/* Referral Modal */}
+                    <Modal
+                        open={openReferral}
+                        onClose={handleCloseReferral}
+                        aria-describedby="modal-data"
+                    >
+                        <Box sx={styleReferral} noValidate>
+                            <div id="modal-data" className="w-full h-full flex flex-col justify-start items-center" >
+                                <div className="w-full h-auto flex flex-col justify-center items-center px-4 pt-4 pb-2" >
+                                    <button onClick={handleCloseReferral} className=" py-3 px-6 text-[white] bg-[#ac3232] rounded-xl cursor-pointer"> Close  </button>
+                                </div>
+                                <div className="w-full h-auto flex flex-col justify-start items-start px-6 py-2" >
+                                    <div>
+                                        {fetchReferral ? (
+                                            <span> {`The Referral is : ${fetchReferral}`}  </span>
+                                        ) : (
+                                            <span> No Referral </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </Box>
+                    </Modal>
+
+                    {/* Child Modal */}
                     <Modal
                         open={openChild}
                         onClose={handleCloseChild}
                         aria-describedby="modal-data"
                     >
-                        <AddReferral/>
+                        <AddReferral id={userID} close={handleCloseChild} />
                     </Modal>
 
+                    {/* Parent Model */}
                     <Modal
                         open={open}
                         onClose={handleClose}
@@ -474,9 +533,9 @@ const UsersTable = () => {
 
                                         <div className=' w-full flex flex-col justify-center items-center'>
                                             <div className='w-full h-12 rounded-t-lg bg-[#6DB23A]'></div>
-
-                                            <div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-5 my-5 px-2">
-                                                <div className='w-full lg:w-[65%] h-auto flex flex-row justify-between lg:justify-center items-start border-4 border-red-600'>
+                                            {/* Video */}
+                                            <div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-5 mt-5 px-2">
+                                                <div className='w-full lg:w-[65%] h-auto flex flex-row justify-between lg:justify-center items-start'>
                                                     <div className='w-[85%] h-64 rounded-xl bg-gray-200 flex justify-center items-center'>
                                                         {videoFetchedLink ? (
                                                             <iframe
@@ -502,8 +561,8 @@ const UsersTable = () => {
                                                     </div>
                                                 </div>
                                                 <div className='w-full lg:w-[35%] h-auto flex flex-col justify-start items-start pl-2 lg:pl-0 mt-2'>
-                                                    <div className="text-[#599032] text-xl font-bold py-2 lg:py-1">
-                                                        {userID && videoFetchedLink ? (<div className="text-xl font-semibold cursor-pointer underline break-words" >  {videoFetchedLink} </div>) : (<span> No Link Yet </span>)}
+                                                    <div className="text-[#599032] text-xl font-bold py-2">
+                                                        {userID && videoFetchedLink ? (<div className="text-xl font-semibold cursor-pointer underline break-words" >  {videoFetchedLink} </div>) : (<span className="text-xl font-semibold" > Currently, no link is set to display the video. Please click on edit to add the link </span>)}
                                                     </div>
                                                     {isEditingVideo && (
                                                         <div className="w-full flex flex-row items-center mt-2">
@@ -525,22 +584,36 @@ const UsersTable = () => {
                                                     )}
                                                 </div>
                                             </div>
-
+                                            {/* Video */}
                                         </div>
 
-                                        <div className=' w-full flex flex-col justify-center items-center mt-10'>
+                                        <div className=' w-full flex flex-col justify-center items-center mt-10 '>
                                             <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'>
                                                 Quick Links
                                             </div>
-                                            <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col lg:flex-row justify-around items-start gap-3 lg:gap-0' >
+                                            <div className='w-full h-auto flex flex-col lg:flex-row justify-around items-start gap-3 lg:gap-1 my-4 px-4' >
                                                 {/* Links */}
-                                                <div className="w-full flex flex-col justify-center items-center">
-                                                    <div className="w-full flex flex-row justify-center items-center ">
-                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
-                                                            <div className="text-[#6DB23A]" >Click Here to Schedule a Call</div>
-                                                            <div className="text-[#599032]"  > Link Set : {firstFetchedLink} </div>
+                                                <div className="w-full lg:max-w-[50%] flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-start items-start">
+                                                        <div className='w-full flex flex-col justify-start items-start py-2 px-2 bg-gray-200'>
+                                                            <div className="text-lg text-[#6DB23A] font-bold break-words">
+                                                                Click Here to Schedule a Call
+                                                            </div>
+                                                            <div className="text-base text-[#599032] font-semibold break-words">
+                                                                {userID && firstFetchedLink ? (
+                                                                    <Link
+                                                                        to={firstFetchedLink}
+                                                                        className='underline cursor-pointer break-words'
+                                                                        style={{ maxWidth: '100%', wordBreak: 'break-word' }}
+                                                                    >
+                                                                        {firstFetchedLink}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span>No Link Available</span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                        <div className='w-auto flex justify-start items-start p-4'>
                                                             <EditOutlinedIcon
                                                                 style={{ fontSize: '40px' }}
                                                                 className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
@@ -549,7 +622,7 @@ const UsersTable = () => {
                                                         </div>
                                                     </div>
                                                     {isEditingFirst && (
-                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                        <div className="w-full flex flex-row justify-start items-center mt-2 lg:pr-20">
                                                             <TextField
                                                                 minRows={3}
                                                                 placeholder="Enter the link"
@@ -568,15 +641,28 @@ const UsersTable = () => {
                                                     )}
                                                 </div>
                                                 {/* Links */}
-
                                                 {/* Links */}
-                                                <div className="w-full flex flex-col justify-center items-center">
-                                                    <div className="w-full flex flex-row justify-center items-center ">
-                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
-                                                            <div className="text-[#6DB23A]" > Go to Settings in Concierge </div>
-                                                            <div className="text-[#599032]"  > Link Set : {secondFetchedLink} </div>
+                                                <div className="w-full lg:max-w-[50%] flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-start items-start">
+                                                        <div className='w-full flex flex-col justify-start items-start py-2 px-2 bg-gray-200'>
+                                                            <div className="text-lg text-[#6DB23A] font-bold break-words">
+                                                                Go to Settings in Concierge
+                                                            </div>
+                                                            <div className="text-base text-[#599032] font-semibold break-words">
+                                                                {userID && secondFetchedLink ? (
+                                                                    <Link
+                                                                        to={secondFetchedLink}
+                                                                        className='underline cursor-pointer break-words'
+                                                                        style={{ maxWidth: '100%', wordBreak: 'break-word' }}
+                                                                    >
+                                                                        {secondFetchedLink}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span>No Link Available</span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                        <div className='w-auto flex justify-start items-start p-4'>
                                                             <EditOutlinedIcon
                                                                 style={{ fontSize: '40px' }}
                                                                 className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
@@ -585,7 +671,7 @@ const UsersTable = () => {
                                                         </div>
                                                     </div>
                                                     {isEditingSecond && (
-                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                        <div className="w-full flex flex-row items-center mt-2 lg:pr-20">
                                                             <TextField
                                                                 minRows={3}
                                                                 placeholder="Enter the link"
@@ -605,16 +691,29 @@ const UsersTable = () => {
                                                 </div>
                                                 {/* Links */}
                                             </div>
-
-                                            <div className='w-[95%] h-auto my-5 rounded-xl flex flex-col lg:flex-row justify-center items-start mt-[-6px] lg:mt-0 gap-3 lg:gap-0' >
+                                            <div className='w-full h-auto flex flex-col lg:flex-row justify-around items-start gap-3 lg:gap-1 px-4' >
                                                 {/* Links */}
-                                                <div className="w-full lg:w-[50%] flex flex-col justify-center items-center">
-                                                    <div className="w-full flex flex-row justify-center items-center ">
-                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
-                                                            <div className="text-[#6DB23A]" >Email Support Team</div>
-                                                            <div className="text-[#599032]"  > Link Set : {thirdFetchedLink} </div>
+                                                <div className="w-full lg:max-w-[50%] flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-start items-start">
+                                                        <div className='w-full flex flex-col justify-start items-start py-2 px-2 bg-gray-200'>
+                                                            <div className="text-lg text-[#6DB23A] font-bold break-words">
+                                                                Email Support Team
+                                                            </div>
+                                                            <div className="text-base text-[#599032] font-semibold break-words">
+                                                                {userID && thirdFetchedLink ? (
+                                                                    <Link
+                                                                        to={thirdFetchedLink}
+                                                                        className='underline cursor-pointer break-words'
+                                                                        style={{ maxWidth: '100%', wordBreak: 'break-word' }}
+                                                                    >
+                                                                        {thirdFetchedLink}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span>No Link Available</span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                        <div className='w-auto flex justify-start items-start p-4'>
                                                             <EditOutlinedIcon
                                                                 style={{ fontSize: '40px' }}
                                                                 className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
@@ -623,7 +722,7 @@ const UsersTable = () => {
                                                         </div>
                                                     </div>
                                                     {isEditingThird && (
-                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                        <div className="w-full flex flex-row items-center mt-2 lg:pr-20">
                                                             <TextField
                                                                 minRows={3}
                                                                 placeholder="Enter the link"
@@ -642,26 +741,41 @@ const UsersTable = () => {
                                                     )}
                                                 </div>
                                                 {/* Links */}
-                                                <div className="w-full lg:w-[50%] py-3 flex flex-row justify-center items-center">
+                                                {/* Button */}
+                                                <div className="w-full lg:w-[50%] py-5 flex flex-row justify-center items-center">
                                                     <button onClick={handleOpenChild} className='font-semibold w-auto text-xl rounded-full py-3 px-6 text-white bg-[#6DB23A]' >
                                                         Add Referral Link
                                                     </button>
                                                 </div>
+                                                {/* Button */}
                                             </div>
                                         </div>
 
                                         <div className=' w-full flex flex-col justify-center items-center my-10'>
                                             <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'> Contact My Account Executive </div>
-                                            <div className='w-[95%] h-auto my-5 flex flex-col justify-start items-start gap-3' >
-
+                                            <div className='w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 lg:gap-1 my-4 px-4' >
                                                 {/* Links */}
-                                                <div className="w-full h-auto lg:w-[50%] flex flex-col justify-center items-center">
-                                                    <div className="w-full flex flex-row justify-center items-center ">
-                                                        <div className='w-full font-semibold text-lg py-2 px-10 bg-gray-200 cursor-pointer'>
-                                                            <div className="text-[#6DB23A]" >1-877-4677 ext. 988</div>
-                                                            <div className="text-[#599032]"  > Link Set : {contactFetchedLink} </div>
+                                                <div className="w-full lg:max-w-[50%] flex flex-col justify-center items-center">
+                                                    <div className="w-full flex flex-row justify-start items-start">
+                                                        <div className='w-full flex flex-col justify-start items-start py-2 px-2 bg-gray-200'>
+                                                            <div className="text-lg text-[#6DB23A] font-bold break-words">
+                                                                Contact Number
+                                                            </div>
+                                                            <div className="text-base text-[#599032] font-semibold break-words">
+                                                                {userID && contactFetchedLink ? (
+                                                                    <Link
+                                                                        to={contactFetchedLink}
+                                                                        className='underline cursor-pointer break-words'
+                                                                        style={{ maxWidth: '100%', wordBreak: 'break-word' }}
+                                                                    >
+                                                                        {contactFetchedLink}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span>No Number Available</span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                        <div className='w-auto flex justify-start items-start p-4'>
                                                             <EditOutlinedIcon
                                                                 style={{ fontSize: '40px' }}
                                                                 className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
@@ -670,10 +784,10 @@ const UsersTable = () => {
                                                         </div>
                                                     </div>
                                                     {isEditingContact && (
-                                                        <div className="w-full flex flex-row items-center mt-2">
+                                                        <div className="w-full flex flex-row items-center mt-2 lg:pr-20">
                                                             <TextField
                                                                 minRows={3}
-                                                                placeholder="Enter the link"
+                                                                placeholder="Enter the Number"
                                                                 value={contactInputValue}
                                                                 onChange={(e) => setContactInputValue(e.target.value)}
                                                                 style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
