@@ -1,23 +1,27 @@
-import React, { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
-import { useAuth } from '../AuthContext'
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
-import AuthLayout from './auth/Layout'
-import UserSignup from './auth/UserSignup'
-import UserLogin from './auth/UserLogin'
-import AdminLogin from './auth/AdminLogin'
+import AuthLayout from './auth/Layout';
+import UserSignup from './auth/UserSignup';
+import UserLogin from './auth/UserLogin';
+import AdminLogin from './auth/AdminLogin';
 
-import UserLayout from './user_portal/Layout'
-import UserDashboardHome from './user_portal/pages/Dashboard'
-import UserDashboardProfile from './user_portal/pages/Profile'
-import UserDashboardClients from './user_portal/pages/Clients'
-import UserPasswordChange from './user_portal/components/UserPasswordChange'
+import UserLayout from './user_portal/Layout';
+import UserDashboardHome from './user_portal/pages/Dashboard';
+import UserDashboardProfile from './user_portal/pages/Profile';
+import UserDashboardClients from './user_portal/pages/Clients';
+import UserPasswordChange from './user_portal/components/UserPasswordChange';
 import Test from './user_portal/components/Test';
 
-import AdminLayout from './admin_portal/Layout'
-import AdminDashbaordUsers from './admin_portal/pages/Users'
-import AdminPasswordChange from './admin_portal/components/AdminPasswordChange'
+import AdminLayout from './admin_portal/Layout';
+import AdminDashbaordUsers from './admin_portal/pages/Users';
+import AdminPasswordChange from './admin_portal/components/AdminPasswordChange';
 import AddReferral from './admin_portal/components/AddReferral';
+
+import GrantTokenLayout from './grant_token/Layout';
+import GrantToken from './grant_token/GrantToken';
+import AuthToken from './grant_token/AuthToken';
 
 function App() {
 
@@ -46,6 +50,11 @@ function App() {
             <Route path='changePassword' element={<AdminPasswordChange/>} />
             <Route path='addreferral' element={<AddReferral/>} />
             <Route path='logout' element={<Logout />} />
+          </Route>
+
+          <Route path='/grant-token' element={<GrantTokenLayout />}>
+            <Route index element={<GrantToken/>} />
+            <Route path='auth-token' element={<AuthToken/>} />
           </Route>
 
         </Routes>
