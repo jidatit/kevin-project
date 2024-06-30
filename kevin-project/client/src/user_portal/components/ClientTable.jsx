@@ -1,5 +1,5 @@
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import axios from 'axios';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
@@ -117,6 +117,20 @@ const TableReact = () => {
             setCurrentPage(0);
         }
     };
+
+    async function getModules() {
+        try {
+            const response = await axios.get('http://localhost:5000/api/modules');
+            console.log('Modules:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching modules:', error);
+        }
+    }
+
+    useEffect(() => {
+        getModules();
+    });
 
     useMemo(() => {
         setCustomPagination(

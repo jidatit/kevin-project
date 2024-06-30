@@ -11,6 +11,12 @@ let access_token = '';
 let refresh_token = '';
 let cronJob;
 
+// let timeNow = new Date();
+// let hour = timeNow.getHours();
+// let minute = timeNow.getMinutes();
+// let second = timeNow.getSeconds();
+// let time = hour + " : " + minute + " : " + second;
+
 router.post('/accessAndRefreshToken', async (req, res) => {
     const { redirect_uri, code, scope, access_type } = req.body;
 
@@ -36,7 +42,12 @@ router.post('/accessAndRefreshToken', async (req, res) => {
         console.log('Access Token : ', access_token);
         console.log('Refresh Token : ', refresh_token);
         res.json(response.data);
-        
+
+        // setTimeout(() => {
+        //     scheduleTokenRefresh();
+        //     console.log('Set Time Out Function');
+        // }, 10000); 
+
         setTimeout(() => {
             scheduleTokenRefresh();
         }, 55 * 60 * 1000); 
@@ -46,6 +57,16 @@ router.post('/accessAndRefreshToken', async (req, res) => {
         res.status(500).send('Error fetching tokens');
     }
 });
+
+router.get('/modules', async (req, res) => {
+    try {
+        const modules = await fetchModules(access_token);
+        res.json(modules);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
 
 export async function refreshAccessToken() {
     try {
@@ -70,10 +91,26 @@ export async function refreshAccessToken() {
     }
 }
 
+async function fetchModules(access_token) {
+    try {
+        const response = await axios.get('https://www.zohoapis.com/crm/v2/settings/modules/Leads', {
+            headers: {
+                Authorization: `Zoho-oauthtoken ${access_token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching modules:', error);
+        throw error;
+    }
+}
+
 function scheduleTokenRefresh() {
     if (cronJob) cronJob.stop();
-    cronJob = cron.schedule('0/55 * * * *', async () => {
+    // */10 * * * * *'
+    cronJob = cron.schedule('*/55 * * * *', async () => {
         console.log('Refreshing access token...');
+        console.log('New Cron Job');
         try {
             await refreshAccessToken();
         } catch (error) {
@@ -84,7 +121,7 @@ function scheduleTokenRefresh() {
         timezone: "Etc/UTC"
     });
 
-    console.log('Token refresh scheduled for every 55 minutes.');
+    console.log('Token refresh scheduled for every 1 minutes.');
 }
 
 export default router;
