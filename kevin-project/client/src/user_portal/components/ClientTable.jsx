@@ -1,9 +1,9 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import axios from 'axios';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import { maxHeight } from "@mui/system";
 
 const style = {
     position: 'absolute',
@@ -18,82 +18,82 @@ const style = {
     maxHeight: '80vh'
 };
 
-/* 
-If the field is:
-"agent" or "mortgage originator" or "mover" or "home Inspector"
-
-If the field is:
-"property manager"
-*/
-
-const products = [
-    {
-        fullName: "Muhammad Umar",
-        createdTime: "10:40 am",
-        solidDate: "10/06/2024",
-        leadStatus: "Active",
-        field: "agent",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Ali Hussain",
-        createdTime: "12:30 am",
-        solidDate: "09/06/2024",
-        leadStatus: "Active",
-        field: "mortgage originator",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        field: "mover",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        field: "home Inspector",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-    {
-        fullName: "Hamza Nisar",
-        createdTime: "10:10 am",
-        solidDate: "06/05/2024",
-        leadStatus: "Active",
-        field: "property manager",
-        detail: "View Details",
-        csv: "Download CSV"
-    },
-];
 const TableReact = () => {
-
-    const [productList] = useState(products);
+    const [productList, setProductList] = useState([]);
     const [rowsLimit] = useState(10);
-    const [rowsToShow, setRowsToShow] = useState(productList.slice(0, rowsLimit));
-    const [customPagination, setCustomPagination] = useState([]);
-    const [totalPage] = useState(Math.ceil(productList?.length / rowsLimit));
+    const [rowsToShow, setRowsToShow] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
+    const [leadId, setLeadId] = useState('');
 
     const [openFirst, setOpenFirst] = useState(false);
-    const handleOpenFirst = () => setOpenFirst(true);
+    const handleOpenFirst = (id) => () => {
+        setOpenFirst(true);
+        setLeadId(id);
+    };
     const handleCloseFirst = () => setOpenFirst(false);
 
-    const [openSecond, setOpenSecond] = useState(false);
-    const handleOpenSecond = () => setOpenSecond(true);
-    const handleCloseSecond = () => setOpenSecond(false);
+    useEffect(() => {
+        getLeadsData();
+    }, []);
+
+    useEffect(() => {
+        setRowsToShow(productList.slice(0, rowsLimit));
+    }, [productList]);
+
+    const totalPage = useMemo(() => Math.ceil(productList.length / rowsLimit), [productList.length, rowsLimit]);
+
+    const generatePaginationLinks = () => {
+        const paginationLinks = [];
+        const ellipsis = "...";
+
+        if (totalPage <= 7) {
+            for (let i = 1; i <= totalPage; i++) {
+                paginationLinks.push(i);
+            }
+        } else {
+            if (currentPage <= 4) {
+                for (let i = 1; i <= 5; i++) {
+                    paginationLinks.push(i);
+                }
+                paginationLinks.push(ellipsis);
+                paginationLinks.push(totalPage);
+            } else if (currentPage >= totalPage - 3) {
+                paginationLinks.push(1);
+                paginationLinks.push(ellipsis);
+                for (let i = totalPage - 4; i <= totalPage; i++) {
+                    paginationLinks.push(i);
+                }
+            } else {
+                paginationLinks.push(1);
+                paginationLinks.push(ellipsis);
+
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    paginationLinks.push(i);
+                }
+
+                paginationLinks.push(ellipsis);
+                paginationLinks.push(totalPage);
+            }
+        }
+
+        return paginationLinks;
+    };
+
+    const getLeadsData = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/leads');
+            const leadsData = response.data;
+            console.log('Modules:', leadsData.data);
+            setProductList(leadsData.data);
+        } catch (error) {
+            console.error('Error fetching modules:', error);
+        }
+    };
 
     const nextPage = () => {
         const startIndex = rowsLimit * (currentPage + 1);
         const endIndex = startIndex + rowsLimit;
-        const newArray = products.slice(startIndex, endIndex);
+        const newArray = productList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(currentPage + 1);
     };
@@ -101,7 +101,7 @@ const TableReact = () => {
     const changePage = (value) => {
         const startIndex = value * rowsLimit;
         const endIndex = startIndex + rowsLimit;
-        const newArray = products.slice(startIndex, endIndex);
+        const newArray = productList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(value);
     };
@@ -109,7 +109,7 @@ const TableReact = () => {
     const previousPage = () => {
         const startIndex = (currentPage - 1) * rowsLimit;
         const endIndex = startIndex + rowsLimit;
-        const newArray = products.slice(startIndex, endIndex);
+        const newArray = productList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -118,54 +118,18 @@ const TableReact = () => {
         }
     };
 
-    async function getModules() {
-        try {
-            const response = await axios.get('http://localhost:5000/api/modules');
-            console.log('Modules:', response.data);
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching modules:', error);
-        }
-    }
-
-    useEffect(() => {
-        getModules();
-    });
-
-    useMemo(() => {
-        setCustomPagination(
-            Array(Math.ceil(productList?.length / rowsLimit)).fill(null)
-        );
-    }, []);
-
-
     return (
         <>
-            <div className=' w-full flex flex-col justify-center items-center'>
+            <div className='w-full flex flex-col justify-center items-center'>
                 <div className='w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]'>
-                    {/* <form className="h-auto mt-[-12px]">
-                        <select id="countries" className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4" defaultValue="">
-                            <option value="" disabled>Filter by Time</option>
-                            <option value="1"> Today </option>
-                            <option value="7">Last Week</option>
-                            <option value="30">Last Month</option>
-                        </select>
-                    </form>
-                    <form className="h-auto mt-[-12px]">
-                        <select id="countries" className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4" defaultValue="">
-                            <option value="" disabled>Filter by Solid Date</option>
-                            <option value="1"> Today </option>
-                            <option value="7">Last Week</option>
-                            <option value="30">Last Month</option>
-                        </select>
-                    </form> */}
+                    {/* Filter forms can be added here */}
                 </div>
             </div>
 
             <div className="h-full bg-white flex items-center justify-center py-4">
-                <div className="w-full max-w-5xl px-2">
+                <div className="w-full px-2">
 
-                    <div className="w-full overflow-x-scroll md:overflow-auto  max-w-7xl 2xl:max-w-none mt-2 ">
+                    <div className="w-full overflow-x-scroll md:overflow-auto max-w-7xl 2xl:max-w-none mt-2 ">
                         <table className="table-auto overflow-scroll md:overflow-auto w-full text-left font-inter border ">
                             <thead className="rounded-lg text-base text-white font-semibold w-full border-t-2 border-gray-300 pt-6 pb-6">
                                 <tr>
@@ -175,8 +139,8 @@ const TableReact = () => {
                                     <th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
                                         Created Time
                                     </th>
-                                    <th className="py-3 px-3  justify-center gap-1 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
-                                        Solid Date
+                                    <th className="py-3 px-3 justify-center gap-1 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
+                                        Sold Date
                                     </th>
                                     <th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
                                         Lead Status
@@ -189,8 +153,9 @@ const TableReact = () => {
                                     </th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                {rowsToShow?.map((data, index) => (
+                                {rowsToShow && rowsToShow?.map((data, index) => (
                                     <tr
                                         className={`${index % 2 == 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
                                             }`}
@@ -204,7 +169,8 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.fullName}
+                                            {data?.Full_Name === null ? <div> - </div> : <div>{data.Full_Name}</div>}
+
                                         </td>
                                         <td
                                             className={`py-2 px-3 font-normal text-base ${index == 0
@@ -214,7 +180,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.createdTime}
+                                            {data?.Created_Time === null ? <div> - </div> : <div>{data.Created_Time}</div>}
                                         </td>
                                         <td
                                             className={`py-2 px-3 font-normal text-base ${index == 0
@@ -224,7 +190,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.solidDate}
+                                            {data?.Sold_Date === null ? <div> - </div> : <div>{data.Sold_Date}</div>}
                                         </td>
                                         <td
                                             className={`py-2 px-3 text-base  font-normal ${index == 0
@@ -234,32 +200,27 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.leadStatus}
+                                            {data?.Lead_Status === null ? <div> - </div> : <div>{data.Lead_Status}</div>}
                                         </td>
                                         <td
-                                            className={`py-2 px-3 text-base font-normal ${index == 0
+                                            className={`py-2 px-3 text-base  font-normal ${index == 0
                                                 ? "border-t-2 border-gray-300"
                                                 : index == rowsToShow?.length
                                                     ? "border-y"
                                                     : "border-t"
-                                                } min-w-[170px]`}
+                                                } whitespace-nowrap`}
                                         >
-                                            {data?.field === "property manager" ? (
-                                                <button onClick={handleOpenSecond} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">{data?.detail}</button>
-                                            ) : (
-                                                <button onClick={handleOpenFirst} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">{data?.detail}</button>
-                                            )}
+                                            <button onClick={handleOpenFirst(data.id)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">View Details</button>
                                         </td>
                                         <td
-                                            className={`py-2 px-3 text-base font-normal ${index == 0
+                                            className={`py-2 px-3 text-base  font-normal ${index == 0
                                                 ? "border-t-2 border-gray-300"
                                                 : index == rowsToShow?.length
                                                     ? "border-y"
                                                     : "border-t"
-                                                } min-w-[200px]`}
+                                                } whitespace-nowrap`}
                                         >
-                                            <button className="bg-[#F2B145] rounded-3xl text-white py-1 px-4">{data?.csv}</button>
-
+                                            <button className="bg-[#F2B145] rounded-3xl text-white py-1 px-4">Download CSV</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -267,20 +228,25 @@ const TableReact = () => {
                         </table>
                     </div>
 
-                    <div className="w-full flex justify-center sm:justify-between xl:flex-row flex-col gap-10 mt-10 lg:mt-8 px-0 lg:px-4 xl:px-4 items-center">
+                    <div className="w-full flex justify-center sm:justify-between xl:flex-row flex-col gap-10 mt-12 lg:mt-8 px-0 lg:px-4 xl:px-4 items-center">
                         <div className="text-base text-center">
                             Showing
-                            <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg" > {currentPage == 0 ? 1 : currentPage * rowsLimit + 1} </span>
-                            to {" "}
-                            <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg" >
-                                {currentPage == totalPage - 1
+                            <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg">
+                                {currentPage === 0 ? 1 : currentPage * rowsLimit + 1}
+                            </span>
+                            to{" "}
+                            <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
+                                {currentPage === totalPage - 1
                                     ? productList?.length
                                     : (currentPage + 1) * rowsLimit}
-                            </span>
-                            {" "} of {" "}
-                            <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg" >{productList?.length}</span>
+                            </span>{" "}
+                            of{" "}
+                            <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
+                                {productList?.length}
+                            </span>{" "}
                             entries
                         </div>
+
                         <div className="flex">
                             <ul
                                 className="flex justify-center items-center gap-x-[10px] z-30"
@@ -296,18 +262,20 @@ const TableReact = () => {
                                 >
                                     <img src="https://www.tailwindtap.com/assets/travelagency-admin/leftarrow.svg" />
                                 </li>
-                                {customPagination?.map((data, index) => (
+
+                                {generatePaginationLinks().map((item, index) => (
                                     <li
-                                        className={`flex items-center justify-center w-[36px] rounded-[6px] h-[34px] border-solid border-[2px] cursor-pointer ${currentPage == index
+                                        key={index}
+                                        onClick={() => changePage(item - 1)}
+                                        className={`flex items-center justify-center w-[36px] rounded-[6px] h-[34px] border-solid border-[2px] cursor-pointer ${currentPage === item - 1
                                             ? "text-white bg-[#6DB23A]"
                                             : "border-[#E4E4EB]"
                                             }`}
-                                        onClick={() => changePage(index)}
-                                        key={index}
                                     >
-                                        {index + 1}
+                                        <span aria-hidden="true">{item}</span>
                                     </li>
                                 ))}
+
                                 <li
                                     className={`flex items-center justify-center w-[36px] rounded-[6px] h-[36px] border-[1px] border-solid border-[#E4E4EB] ${currentPage == totalPage - 1
                                         ? "bg-[#cccccc] pointer-events-none"
@@ -329,15 +297,19 @@ const TableReact = () => {
                         <Box sx={style} noValidate>
 
                             <div id="modal-data" className="w-full h-full flex flex-col justify-start items-center gap-3" >
+                                
+                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
+                                    <h2 className="text-xl font-bold" >Lead Details</h2>
+                                </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={leadId} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={productList.First_Name} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Est Move Date </label>
@@ -440,117 +412,6 @@ const TableReact = () => {
                                         <label className="text-sm font-semibold" > Renters Insurance Policy </label>
                                         <TextField sx={{ width: "100%" }} id="rentersInsurenceID" value={"MefBer345"} />
                                     </div>
-                                </div>
-
-                            </div>
-
-                        </Box>
-                    </Modal>
-
-                    <Modal
-                        open={openSecond}
-                        onClose={handleCloseSecond}
-                        aria-describedby="modal-data"
-                    >
-                        <Box sx={style} noValidate>
-
-                            <div id="modal-data" className="w-full h-full flex flex-col justify-start items-center gap-3" >
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={"MefBer345"} />
-                                    </div>
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={"Muhammad Umar"} />
-                                    </div>
-                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Est Move Date </label>
-                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Created Time </label>
-                                        <TextField sx={{ width: "100%" }} id="createdTimeID" value={"MefBer345"} />
-                                    </div>
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Solid Date </label>
-                                        <TextField sx={{ width: "100%" }} id="solidDateID" value={"Muhammad Umar"} />
-                                    </div>
-                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > First Name </label>
-                                        <TextField sx={{ width: "100%" }} id="firstNameID" value={"10/10/2004"} />
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Last Name </label>
-                                        <TextField sx={{ width: "100%" }} id="lastNameID" value={"MefBer345"} />
-                                    </div>
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Lead Status </label>
-                                        <TextField sx={{ width: "100%" }} id="leadStatusID" value={"Muhammad Umar"} />
-                                    </div>
-                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Provider </label>
-                                        <TextField sx={{ width: "100%" }} id="providerID" value={"10/10/2004"} />
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Internet Solid </label>
-                                        <TextField sx={{ width: "100%" }} id="internetSolidID" value={"MefBer345"} />
-                                    </div>
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > TV Solid </label>
-                                        <TextField sx={{ width: "100%" }} id="tvSolidID" value={"Muhammad Umar"} />
-                                    </div>
-                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Phone Solid </label>
-                                        <TextField sx={{ width: "100%" }} id="phoneSolidID" value={"10/10/2004"} />
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Move Quote Request </label>
-                                        <TextField sx={{ width: "100%" }} id="moveQuoteRequestID" value={"MefBer345"} />
-                                    </div>
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Home Monitoring </label>
-                                        <TextField sx={{ width: "100%" }} id="homeMonitoringID" value={"Muhammad Umar"} />
-                                    </div>
-                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Utilities Set up </label>
-                                        <TextField sx={{ width: "100%" }} id="utilitiesSetUpID" value={"10/10/2004"} />
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > COA / DMV / Voter Update </label>
-                                        <TextField sx={{ width: "100%" }} id="voterUpdateID" value={"MefBer345"} />
-                                    </div>
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > New State </label>
-                                        <TextField sx={{ width: "100%" }} id="newStateID" value={"Muhammad Umar"} />
-                                    </div>
-                                    <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > New City </label>
-                                        <TextField sx={{ width: "100%" }} id="newCityID" value={"10/10/2004"} />
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
-                                    <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Call status notes </label>
-                                        <TextField sx={{ width: "100%" }} id="cellStatusNotesID" value={"MefBer345"} />
-                                    </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Agent APP Credentials </label>
                                         <TextField sx={{ width: "100%" }} id="agentappcredentials" value={"Muhammad Umar"} />
@@ -580,7 +441,6 @@ const TableReact = () => {
                 </div>
             </div>
         </>
-
     );
 };
 

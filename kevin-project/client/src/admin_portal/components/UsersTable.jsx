@@ -86,6 +86,7 @@ const UsersTable = () => {
             queryShapshot.forEach((doc) => {
                 usersData.push({ id: doc.id, ...doc.data() });
             });
+            console.log(usersData);
             setProductList(usersData);
         } catch (error) {
             console.error("Error fetching users data : ", error);
@@ -329,7 +330,6 @@ const UsersTable = () => {
                             </thead>
                             <tbody>
                                 {rowsToShow && rowsToShow?.map((data, index) => (
-
                                     <tr
                                         className={`${index % 2 == 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
                                             }`}
@@ -404,7 +404,6 @@ const UsersTable = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {/* {data.referralLink ? data?.referralLink : " - "} */}
                                             <button onClick={() => handleOpenReferral(data?.id)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"> View Referral </button>
                                         </td>
                                         <td

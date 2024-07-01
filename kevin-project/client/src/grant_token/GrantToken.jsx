@@ -4,7 +4,7 @@ import { TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/mater
 const GrantToken = () => {
     const [clientId, setClientId] = useState('');
     const [clientSecret, setClientSecret] = useState('');
-    const [scope, setScope] = useState('ZohoCRM.settings.ALL');
+    const [scope, setScope] = useState('ZohoCRM.modules.ALL');
     const [redirectUrl, setRedirectUrl] = useState('http://localhost:5173/grant-token/auth-token');
     const [accessType, setAccessType] = useState('offline');
 
