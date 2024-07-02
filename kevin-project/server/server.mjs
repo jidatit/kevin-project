@@ -6,7 +6,7 @@ import tokensRouter from './routes/tokens.mjs';
 config();
 
 const app = express();
-const port = 10000;
+const port = process.env.PORT || 10000;
 
 app.use(cors());
 app.use(express.json());
