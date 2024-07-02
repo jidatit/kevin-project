@@ -82,7 +82,7 @@ const ClientTable = () => {
 
     const getLeadsData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/leads');
+            const response = await axios.get('https://kevin-project.onrender.com/api/leads');
             const leadsData = response.data;
             console.log('Modules:', leadsData.data);
             setProductList(leadsData.data);
