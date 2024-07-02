@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, Navigate } from 'react-router-dom';
+import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from '../../AuthContext';
+import { db } from '../../Firebase';
 import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -47,6 +49,12 @@ const Layout = () => {
         }
     };
 
+    useEffect(() => {
+        if (userID) {
+            fetchUserData();
+        }
+    }, [userID]);
+
     const handleResize = useCallback(() => {
         const isDesktop = window.innerWidth > 768;
         setDisplayName(isDesktop);
@@ -80,12 +88,6 @@ const Layout = () => {
     const handleClose = () => {
         setAnchorEl(null);
     };
-
-    useEffect(() => {
-        if (userID) {
-            fetchUserData();
-        }
-    }, [userID]);
 
     const NavToChangePass = () => {
         navigate('/admin_portal/changePassword');
