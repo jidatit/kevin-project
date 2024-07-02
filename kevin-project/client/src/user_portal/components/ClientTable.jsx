@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from "react";
+import { CSVLink } from 'react-csv';
 import axios from 'axios';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -18,17 +19,17 @@ const style = {
     maxHeight: '80vh'
 };
 
-const TableReact = () => {
+const ClientTable = () => {
     const [productList, setProductList] = useState([]);
     const [rowsLimit] = useState(10);
     const [rowsToShow, setRowsToShow] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
-    const [leadId, setLeadId] = useState('');
+    const [dataWithLeadId, setDataWithLeadId] = useState([]);
 
     const [openFirst, setOpenFirst] = useState(false);
-    const handleOpenFirst = (id) => () => {
+    const handleOpenFirst = (leadData) => () => {
         setOpenFirst(true);
-        setLeadId(id);
+        setDataWithLeadId(leadData);
     };
     const handleCloseFirst = () => setOpenFirst(false);
 
@@ -169,7 +170,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.Full_Name === null ? <div> - </div> : <div>{data.Full_Name}</div>}
+                                            {!data?.Full_Name ? <div> - </div> : <div>{data.Full_Name}</div>}
 
                                         </td>
                                         <td
@@ -180,7 +181,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.Created_Time === null ? <div> - </div> : <div>{data.Created_Time}</div>}
+                                            {!data?.Created_Time ? <div> - </div> : <div>{data.Created_Time}</div>}
                                         </td>
                                         <td
                                             className={`py-2 px-3 font-normal text-base ${index == 0
@@ -190,7 +191,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.Sold_Date === null ? <div> - </div> : <div>{data.Sold_Date}</div>}
+                                            {!data?.Sold_Date ? <div> - </div> : <div>{data.Sold_Date}</div>}
                                         </td>
                                         <td
                                             className={`py-2 px-3 text-base  font-normal ${index == 0
@@ -200,7 +201,7 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            {data?.Lead_Status === null ? <div> - </div> : <div>{data.Lead_Status}</div>}
+                                            {!data?.Lead_Status ? <div> - </div> : <div>{data.Lead_Status}</div>}
                                         </td>
                                         <td
                                             className={`py-2 px-3 text-base  font-normal ${index == 0
@@ -210,7 +211,9 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            <button onClick={handleOpenFirst(data.id)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">View Details</button>
+                                            <button onClick={handleOpenFirst(data)} className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4">
+                                                View Details
+                                            </button>
                                         </td>
                                         <td
                                             className={`py-2 px-3 text-base  font-normal ${index == 0
@@ -220,7 +223,16 @@ const TableReact = () => {
                                                     : "border-t"
                                                 } whitespace-nowrap`}
                                         >
-                                            <button className="bg-[#F2B145] rounded-3xl text-white py-1 px-4">Download CSV</button>
+                                            <CSVLink
+                                                data={[
+                                                    ['Record ID', 'Full Name', 'Est Move Date', 'Created Time', 'Sold Date', 'First Name', 'Last Name', 'Lead Status', 'Provider', 'Internet Sold', 'TV Sold', 'Phone Sold', 'Move Quote Request', 'Home Monitoring', 'Utilities Set up', 'COA / DMV / Voter Update', 'New State', 'New City', 'Call status notes', 'Electric ACCT', 'Gas ACCT', 'Renters Insurance Policy', 'Agent APP Credentials', 'Agent Pay Preference', 'Discount Portal', 'Agent Reimbursement'],
+                                                    [ data?.id, data?.Full_Name, data?.Est_Move_Date, data?.Created_Time, data?.Sold_Date, data?.First_Name, data?.Last_Name, data?.Lead_Status, data?.Provider, data?.Internet_Sold, data?.T_V_Sold, data?.Phone_Sold, data?.Move_Ref_Sold, data?.Home_Monitoring, data?.Utilities_set_up, data?.Change_of_Address, data?.New_State, data?.New_City, data?.Call_DispositionX, data?.Electric_AccT, data?.Gas_AccT, data?.Renters_Insurance_Policy, data?.Agent_APP_Credentials, data?.Agent_Preferred_Method_of_Reward_Fulfillment, '-', data?.Agent_Reimbursement]
+                                                ]}
+                                                filename={`lead_${data.id}.csv`}
+                                                className="bg-[#F2B145] rounded-3xl text-white py-1 px-4"
+                                            >
+                                                Download CSV
+                                            </CSVLink>
                                         </td>
                                     </tr>
                                 ))}
@@ -297,7 +309,7 @@ const TableReact = () => {
                         <Box sx={style} noValidate>
 
                             <div id="modal-data" className="w-full h-full flex flex-col justify-start items-center gap-3" >
-                                
+
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <h2 className="text-xl font-bold" >Lead Details</h2>
                                 </div>
@@ -305,131 +317,132 @@ const TableReact = () => {
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Record ID </label>
-                                        <TextField sx={{ width: "100%" }} id="recordID" value={leadId} />
+                                        <TextField sx={{ width: "100%" }} id="recordID" value={!dataWithLeadId.id ? '---' : dataWithLeadId.id} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Full Name </label>
-                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={productList.First_Name} />
+                                        <TextField sx={{ width: "100%" }} id="fullNameID" value={!dataWithLeadId.Full_Name ? '---' : dataWithLeadId.Full_Name} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Est Move Date </label>
-                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="moveDataID" value={!dataWithLeadId.Est_Move_Date ? '---' : dataWithLeadId.Est_Move_Date} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Created Time </label>
-                                        <TextField sx={{ width: "100%" }} id="createdTimeID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="createdTimeID" value={!dataWithLeadId.Created_Time ? '---' : dataWithLeadId.Created_Time} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Solid Date </label>
-                                        <TextField sx={{ width: "100%" }} id="solidDateID" value={"Muhammad Umar"} />
+                                        <label className="text-sm font-semibold" > Sold Date </label>
+                                        <TextField sx={{ width: "100%" }} id="solidDateID" value={!dataWithLeadId.Sold_Date ? '---' : dataWithLeadId.Sold_Date} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > First Name </label>
-                                        <TextField sx={{ width: "100%" }} id="firstNameID" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="firstNameID" value={!dataWithLeadId.First_Name ? '---' : dataWithLeadId.First_Name} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Last Name </label>
-                                        <TextField sx={{ width: "100%" }} id="lastNameID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="lastNameID" value={!dataWithLeadId.Last_Name ? '---' : dataWithLeadId.Last_Name} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Lead Status </label>
-                                        <TextField sx={{ width: "100%" }} id="leadStatusID" value={"Muhammad Umar"} />
+                                        <TextField sx={{ width: "100%" }} id="leadStatusID" value={!dataWithLeadId.Lead_Status ? '---' : dataWithLeadId.Lead_Status} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Provider </label>
-                                        <TextField sx={{ width: "100%" }} id="providerID" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="providerID" value={!dataWithLeadId.Provider ? '---' : dataWithLeadId.Provider} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Internet Solid </label>
-                                        <TextField sx={{ width: "100%" }} id="internetSolidID" value={"MefBer345"} />
+                                        <label className="text-sm font-semibold" > Internet Sold </label>
+                                        <TextField sx={{ width: "100%" }} id="internetSolidID" value={!dataWithLeadId.Internet_Sold ? 'flase' : 'true'} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > TV Solid </label>
-                                        <TextField sx={{ width: "100%" }} id="tvSolidID" value={"Muhammad Umar"} />
+                                        <label className="text-sm font-semibold" > TV Sold </label>
+                                        <TextField sx={{ width: "100%" }} id="tvSolidID" value={!dataWithLeadId.T_V_Sold ? 'flase' : 'true'} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
-                                        <label className="text-sm font-semibold" > Phone Solid </label>
-                                        <TextField sx={{ width: "100%" }} id="phoneSolidID" value={"10/10/2004"} />
+                                        <label className="text-sm font-semibold" > Phone Sold </label>
+                                        <TextField sx={{ width: "100%" }} id="phoneSolidID" value={!dataWithLeadId.Phone_Sold ? 'flase' : 'true'} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Move Quote Request </label>
-                                        <TextField sx={{ width: "100%" }} id="moveQuoteRequestID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="moveQuoteRequestID" value={!dataWithLeadId.Move_Ref_Sold ? 'flase' : 'true'} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Home Monitoring </label>
-                                        <TextField sx={{ width: "100%" }} id="homeMonitoringID" value={"Muhammad Umar"} />
+                                        <TextField sx={{ width: "100%" }} id="homeMonitoringID" value={!dataWithLeadId.Home_Monitoring ? '---' : dataWithLeadId.Home_Monitoring} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Utilities Set up </label>
-                                        <TextField sx={{ width: "100%" }} id="utilitiesSetUpID" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="utilitiesSetUpID" value={!dataWithLeadId.Utilities_set_up ? '---' : dataWithLeadId.Utilities_set_up} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > COA / DMV / Voter Update </label>
-                                        <TextField sx={{ width: "100%" }} id="voterUpdateID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="voterUpdateID" value={!dataWithLeadId.Change_of_Address ? 'flase' : 'true'} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > New State </label>
-                                        <TextField sx={{ width: "100%" }} id="newStateID" value={"Muhammad Umar"} />
+                                        <TextField sx={{ width: "100%" }} id="newStateID" value={!dataWithLeadId.New_State ? '---' : dataWithLeadId.New_State} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > New City </label>
-                                        <TextField sx={{ width: "100%" }} id="newCityID" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="newCityID" value={!dataWithLeadId.New_City ? '---' : dataWithLeadId.New_City} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Call status notes </label>
-                                        <TextField sx={{ width: "100%" }} id="cellStatusNotesID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="cellStatusNotesID" value={!dataWithLeadId.Call_DispositionX ? '---' : dataWithLeadId.Call_DispositionX} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Electric ACCT </label>
-                                        <TextField sx={{ width: "100%" }} id="electricACCTID" value={"Muhammad Umar"} />
+                                        <TextField sx={{ width: "100%" }} id="electricACCTID" value={!dataWithLeadId.Electric_AccT ? '---' : dataWithLeadId.Electric_AccT} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Gas ACCT </label>
-                                        <TextField sx={{ width: "100%" }} id="gasACCTID" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="gasACCTID" value={!dataWithLeadId.Gas_AccT ? '---' : dataWithLeadId.Gas_AccT} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Renters Insurance Policy </label>
-                                        <TextField sx={{ width: "100%" }} id="rentersInsurenceID" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="rentersInsurenceID" value={!dataWithLeadId.Renters_Insurance_Policy ? '---' : dataWithLeadId.Renters_Insurance_Policy} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Agent APP Credentials </label>
-                                        <TextField sx={{ width: "100%" }} id="agentappcredentials" value={"Muhammad Umar"} />
+                                        <TextField sx={{ width: "100%" }} id="agentappcredentials" value={!dataWithLeadId.Agent_APP_Credentials ? '---' : dataWithLeadId.Agent_APP_Credentials} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Agent Pay Preference </label>
-                                        <TextField sx={{ width: "100%" }} id="agentpaypreference" value={"10/10/2004"} />
+                                        <TextField sx={{ width: "100%" }} id="agentpaypreference" value={!dataWithLeadId.Agent_Preferred_Method_of_Reward_Fulfillment ? '---' : dataWithLeadId.Agent_Preferred_Method_of_Reward_Fulfillment} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
+                                        {/* Didn't find this field */}
                                         <label className="text-sm font-semibold" > Discount Portal </label>
-                                        <TextField sx={{ width: "100%" }} id="discountportal" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="discountportal" value={"-"} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Agent Reimbursement </label>
-                                        <TextField sx={{ width: "100%" }} id="agentreimbursement" value={"MefBer345"} />
+                                        <TextField sx={{ width: "100%" }} id="agentreimbursement" value={!dataWithLeadId.Agent_Reimbursement ? '---' : dataWithLeadId.Agent_Reimbursement} />
                                     </div>
                                 </div>
 
@@ -444,4 +457,4 @@ const TableReact = () => {
     );
 };
 
-export default TableReact;
+export default ClientTable;

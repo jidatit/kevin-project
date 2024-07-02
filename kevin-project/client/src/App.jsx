@@ -12,7 +12,6 @@ import UserDashboardHome from './user_portal/pages/Dashboard';
 import UserDashboardProfile from './user_portal/pages/Profile';
 import UserDashboardClients from './user_portal/pages/Clients';
 import UserPasswordChange from './user_portal/components/UserPasswordChange';
-import Test from './user_portal/components/Test';
 
 import AdminLayout from './admin_portal/Layout';
 import AdminDashbaordUsers from './admin_portal/pages/Users';
@@ -40,7 +39,6 @@ function App() {
             <Route index element={<UserDashboardHome />} />
             <Route path='profile' element={<UserDashboardProfile />} />
             <Route path='clients' element={<UserDashboardClients />} />
-            <Route path='test' element={<Test />} />
             <Route path='changePassword' element={<UserPasswordChange/>} />
             <Route path='logout' element={<Logout />} />
           </Route>

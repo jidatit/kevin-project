@@ -13,5 +13,5 @@ app.use(express.json());
 app.use('/api', tokensRouter);
 
 app.listen(port, () => {
-    console.log(`Server is running on port: ${port}`);
+    console.log(`Server is running on port : ${port}`);
 });
