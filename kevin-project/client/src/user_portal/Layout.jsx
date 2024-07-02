@@ -57,18 +57,18 @@ const Layout = () => {
     }, []);
 
     useEffect(() => {
+        if (userID) {
+            fetchUserData();
+        }
+    }, [userID]);
+
+    useEffect(() => {
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);
         };
     }, [handleResize]);
-
-    useEffect(() => {
-        if (userID) {
-            fetchUserData();
-        }
-    }, [userID]);
 
     if (loading) {
         return <Loader />;

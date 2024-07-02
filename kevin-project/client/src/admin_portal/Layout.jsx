@@ -29,6 +29,24 @@ const Layout = () => {
     const open = Boolean(anchorEl);
     const navigate = useNavigate();
 
+    const userID = currentUser?.uid;
+    const [userData, setUserData] = useState(null);
+
+    const fetchUserData = async () => {
+        if (!userID) return;
+        try {
+            const userRef = doc(db, 'admins', userID);
+            const dataDoc = await getDoc(userRef);
+            if (dataDoc.exists()) {
+                setUserData(dataDoc.data());
+            } else {
+                console.log("No such document!");
+            }
+        } catch (error) {
+            console.error("Error fetching user data: ", error);
+        }
+    };
+
     const handleResize = useCallback(() => {
         const isDesktop = window.innerWidth > 768;
         setDisplayName(isDesktop);
@@ -62,6 +80,12 @@ const Layout = () => {
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    useEffect(() => {
+        if (userID) {
+            fetchUserData();
+        }
+    }, [userID]);
 
     const NavToChangePass = () => {
         navigate('/admin_portal/changePassword');
@@ -105,7 +129,7 @@ const Layout = () => {
                             </div>
                             <div className="flex flex-cols justify-center items-center gap-0 lg:gap-2">
                                 <Avatar src={UserAvatar} alt="Remy Sharp" />
-                                {displayName && <h1 className="text-base font-semibold pl-4"> Admin </h1>}
+                                {displayName && <h1 className="text-base font-semibold pl-4"> {userData ? userData.name : ''} </h1>}
                                 <Button
                                     id="basic-button"
                                     aria-controls={open ? 'basic-menu' : undefined}
