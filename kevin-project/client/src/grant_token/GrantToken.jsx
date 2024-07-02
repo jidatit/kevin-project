@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { TextField } from '@mui/material';
 
 const GrantToken = () => {
     const [clientId, setClientId] = useState('');
     const [clientSecret, setClientSecret] = useState('');
     const [scope, setScope] = useState('ZohoCRM.modules.ALL');
-    const [redirectUrl, setRedirectUrl] = useState('http://localhost:5173/grant-token/auth-token');
+    const [redirectUrl, setRedirectUrl] = useState('https://kevin.jidatit.uk/grant-token/auth-token');
     const [accessType, setAccessType] = useState('offline');
 
     const handleSubmit = (event) => {
