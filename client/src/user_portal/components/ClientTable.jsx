@@ -2,9 +2,17 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { CSVLink } from 'react-csv';
 import axios from 'axios';
+import TuneIcon from '@mui/icons-material/Tune';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DatePicker } from "@mui/x-date-pickers";
 
 const style = {
     position: 'absolute',
@@ -21,10 +29,24 @@ const style = {
 
 const ClientTable = () => {
     const [productList, setProductList] = useState([]);
-    const [rowsLimit] = useState(10);
+    const [rowPerPage, setRowPerPage] = useState(5);
     const [rowsToShow, setRowsToShow] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [dataWithLeadId, setDataWithLeadId] = useState([]);
+    const [filteredProductList, setFilteredProductList] = useState([]);
+    const [showOrHideFilters, setShowOrHideFilters] = useState(false);
+
+    const showFilters = () => {
+        if (showOrHideFilters === false) {
+            setShowOrHideFilters(true);
+        } else {
+            setShowOrHideFilters(false);
+        }
+    };
+
+    const handleRowPerPageChange = (event) => {
+        setRowPerPage(event.target.value);
+    };
 
     const [openFirst, setOpenFirst] = useState(false);
     const handleOpenFirst = (leadData) => () => {
@@ -38,10 +60,10 @@ const ClientTable = () => {
     }, []);
 
     useEffect(() => {
-        setRowsToShow(productList.slice(0, rowsLimit));
-    }, [productList]);
+        setRowsToShow(filteredProductList.slice(0, rowPerPage));
+    }, [filteredProductList,rowPerPage]);
 
-    const totalPage = useMemo(() => Math.ceil(productList.length / rowsLimit), [productList.length, rowsLimit]);
+    const totalPage = useMemo(() => Math.ceil(filteredProductList.length / rowPerPage), [filteredProductList.length, rowPerPage]);
 
     const generatePaginationLinks = () => {
         const paginationLinks = [];
@@ -82,7 +104,7 @@ const ClientTable = () => {
 
     const getLeadsData = async () => {
         try {
-            const response = await axios.get('https://kevin-project.onrender.com/api/leads');
+            const response = await axios.get('http://localhost:10000/api/leads');
             const leadsData = response.data;
             console.log('Modules:', leadsData.data);
             setProductList(leadsData.data);
@@ -92,25 +114,25 @@ const ClientTable = () => {
     };
 
     const nextPage = () => {
-        const startIndex = rowsLimit * (currentPage + 1);
-        const endIndex = startIndex + rowsLimit;
-        const newArray = productList.slice(startIndex, endIndex);
+        const startIndex = rowPerPage * (currentPage + 1);
+        const endIndex = startIndex + rowPerPage;
+        const newArray = filteredProductList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(currentPage + 1);
     };
 
     const changePage = (value) => {
-        const startIndex = value * rowsLimit;
-        const endIndex = startIndex + rowsLimit;
-        const newArray = productList.slice(startIndex, endIndex);
+        const startIndex = value * rowPerPage;
+        const endIndex = startIndex + rowPerPage;
+        const newArray = filteredProductList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(value);
     };
 
     const previousPage = () => {
-        const startIndex = (currentPage - 1) * rowsLimit;
-        const endIndex = startIndex + rowsLimit;
-        const newArray = productList.slice(startIndex, endIndex);
+        const startIndex = (currentPage - 1) * rowPerPage;
+        const endIndex = startIndex + rowPerPage;
+        const newArray = filteredProductList.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -119,13 +141,131 @@ const ClientTable = () => {
         }
     };
 
+    const [filters, setFilters] = useState({
+        fullName: '',
+        createdTimeFrom: null,
+        createdTimeTo: null,
+        sortOrder: 'asc'
+    });
+
+    const resetFilterData = () => {
+        setFilters({
+            fullName: '',
+            createdTimeFrom: null,
+            createdTimeTo: null,
+            sortOrder: 'asc'
+        });
+    }
+
+    const applyFilters = () => {
+        let filtered = productList;
+
+        if (filters.fullName) {
+            filtered = filtered.filter(item => item.Full_Name.toLowerCase().includes(filters.fullName.toLowerCase()));
+        }
+
+        if (filters.createdTimeFrom) {
+            filtered = filtered.filter(item => new Date(item.Created_Time) >= new Date(filters.createdTimeFrom));
+        }
+
+        if (filters.createdTimeTo) {
+            filtered = filtered.filter(item => new Date(item.Created_Time) <= new Date(filters.createdTimeTo));
+        }
+
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.Created_Time);
+            const dateB = new Date(b.Created_Time);
+            return filters.sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+
+        setFilteredProductList(filtered);
+    };
+
+    const handleFilterChange = (event) => {
+        const { name, value } = event.target;
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            [name]: value
+        }));
+    };
+
+    const handleDateChange = (name, date) => {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            [name]: date
+        }));
+    };
+
+    const handleSortOrderChange = (event) => {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            sortOrder: event.target.value
+        }));
+    };
+
+    useEffect(() => {
+        applyFilters();
+    }, [filters, productList]);
+
     return (
         <>
             <div className='w-full flex flex-col justify-center items-center'>
-                <div className='w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]'>
-                    {/* Filter forms can be added here */}
+                <div className='w-full h-16 flex flex-row justify-end items-center rounded-t-lg pr-10 bg-[#6DB23A]'>
+                    <div onClick={showFilters} className="flex flex-row justify-end items-center gap-3 font-semibold text-base text-white cursor-pointer" >
+                        <button> Filter </button>
+                        <TuneIcon />
+                    </div>
                 </div>
             </div>
+
+            {showOrHideFilters === true ? (
+                <>
+                    <div className='w-full flex flex-col lg:flex-row justify-evenly items-center px-4 pt-4'>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <TextField
+                                label="Full Name"
+                                variant="outlined"
+                                size="large"
+                                name="fullName"
+                                value={filters.fullName}
+                                onChange={handleFilterChange}
+                            />
+                            <DatePicker
+                                label="Created Time From"
+                                value={filters.createdTimeFrom}
+                                onChange={(date) => handleDateChange("createdTimeFrom", date)}
+                                renderInput={(params) => <TextField {...params} size="small" />}
+                            />
+                            <DatePicker
+                                label="Created Time To"
+                                value={filters.createdTimeTo}
+                                onChange={(date) => handleDateChange("createdTimeTo", date)}
+                                renderInput={(params) => <TextField {...params} size="small" />}
+                            />
+                            <FormControl size="small" variant="outlined">
+                                <InputLabel>Sort Order</InputLabel>
+                                <Select
+                                    value={filters.sortOrder}
+                                    size="large"
+                                    name="sortOrder"
+                                    onChange={handleSortOrderChange}
+                                    label="Sort Created Time"
+                                >
+                                    <MenuItem value="asc">Ascending</MenuItem>
+                                    <MenuItem value="desc">Descending</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <div onClick={resetFilterData}  className="flex flex-row justify-end items-center gap-3 text-base text-gray-900 cursor-pointer border border-gray-300 rounded-lg py-4 px-4" >
+                                <button> Reset </button>
+                                <TuneIcon />
+                            </div>
+                        </LocalizationProvider>
+                    </div>
+                </>
+            ) : (
+                <>
+                </>
+            )}
 
             <div className="h-full bg-white flex items-center justify-center py-4">
                 <div className="w-full px-2">
@@ -226,7 +366,7 @@ const ClientTable = () => {
                                             <CSVLink
                                                 data={[
                                                     ['Record ID', 'Full Name', 'Est Move Date', 'Created Time', 'Sold Date', 'First Name', 'Last Name', 'Lead Status', 'Provider', 'Internet Sold', 'TV Sold', 'Phone Sold', 'Move Quote Request', 'Home Monitoring', 'Utilities Set up', 'COA / DMV / Voter Update', 'New State', 'New City', 'Call status notes', 'Electric ACCT', 'Gas ACCT', 'Renters Insurance Policy', 'Agent APP Credentials', 'Agent Pay Preference', 'Discount Portal', 'Agent Reimbursement'],
-                                                    [ data?.id, data?.Full_Name, data?.Est_Move_Date, data?.Created_Time, data?.Sold_Date, data?.First_Name, data?.Last_Name, data?.Lead_Status, data?.Provider, data?.Internet_Sold, data?.T_V_Sold, data?.Phone_Sold, data?.Move_Ref_Sold, data?.Home_Monitoring, data?.Utilities_set_up, data?.Change_of_Address, data?.New_State, data?.New_City, data?.Call_DispositionX, data?.Electric_AccT, data?.Gas_AccT, data?.Renters_Insurance_Policy, data?.Agent_APP_Credentials, data?.Agent_Preferred_Method_of_Reward_Fulfillment, '-', data?.Agent_Reimbursement]
+                                                    [data?.id, data?.Full_Name, data?.Est_Move_Date, data?.Created_Time, data?.Sold_Date, data?.First_Name, data?.Last_Name, data?.Lead_Status, data?.Provider, data?.Internet_Sold, data?.T_V_Sold, data?.Phone_Sold, data?.Move_Ref_Sold, data?.Home_Monitoring, data?.Utilities_set_up, data?.Change_of_Address, data?.New_State, data?.New_City, data?.Call_DispositionX, data?.Electric_AccT, data?.Gas_AccT, data?.Renters_Insurance_Policy, data?.Agent_APP_Credentials, data?.Agent_Preferred_Method_of_Reward_Fulfillment, '-', data?.Agent_Reimbursement]
                                                 ]}
                                                 filename={`lead_${data.id}.csv`}
                                                 className="bg-[#F2B145] rounded-3xl text-white py-1 px-4"
@@ -244,19 +384,68 @@ const ClientTable = () => {
                         <div className="text-base text-center">
                             Showing
                             <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg">
-                                {currentPage === 0 ? 1 : currentPage * rowsLimit + 1}
+                                {currentPage === 0 ? 1 : currentPage * rowPerPage + 1}
                             </span>
                             to{" "}
                             <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
                                 {currentPage === totalPage - 1
                                     ? productList?.length
-                                    : (currentPage + 1) * rowsLimit}
+                                    : (currentPage + 1) * rowPerPage}
                             </span>{" "}
                             of{" "}
                             <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
                                 {productList?.length}
                             </span>{" "}
                             entries
+                        </div>
+
+                        <div className="flex flex-row justify-center items-center gap-4" >
+                            <div> Rows Per Page </div>
+                            <Box sx={{ width: 200}}>
+                                <FormControl fullWidth>
+                                    <Select
+                                        id="rows-per-page"
+                                        value={rowPerPage}
+                                        onChange={handleRowPerPageChange}
+                                        sx={{
+                                            height: 40,
+                                            backgroundColor: '#6DB23A',
+                                            color: 'white',
+                                            borderRadius: '8px',
+                                            '.MuiOutlinedInput-notchedOutline': {
+                                                borderColor: 'transparent',
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: 'transparent',
+                                            },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: 'transparent',
+                                            },
+                                            '.MuiSelect-icon': {
+                                                color: 'white',
+                                            },
+                                            '& .MuiSelect-select': {
+                                                borderRadius: '8px',
+                                            },
+                                            '& .MuiListItem-root': {
+                                                '&:hover': {
+                                                    backgroundColor: 'white',
+                                                    color: 'black',
+                                                },
+                                            },
+                                            '& .Mui-selected': {
+                                                backgroundColor: 'white',
+                                                color: 'black',
+                                            },
+                                        }}
+                                    >
+                                        <MenuItem value={5}>5</MenuItem>
+                                        <MenuItem value={10}>10</MenuItem>
+                                        <MenuItem value={15}>15</MenuItem>
+                                        <MenuItem value={20}>20</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
                         </div>
 
                         <div className="flex">
