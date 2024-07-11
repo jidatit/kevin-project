@@ -28,13 +28,14 @@ const style = {
 };
 
 const ClientTable = () => {
-    const [productList, setProductList] = useState([]);
-    const [rowPerPage, setRowPerPage] = useState(5);
+    const [leadsData, setLeadsData] = useState([]);
+    const [contactsData, setContactsData] = useState([]);
+    const [dataWithLeadId, setDataWithLeadId] = useState([]);
+    const [filteredLeadsData, setfilteredLeadsData] = useState([]);
+    const [showOrHideFilters, setShowOrHideFilters] = useState(false);
+    const [rowPerPage, setRowPerPage] = useState(10);
     const [rowsToShow, setRowsToShow] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
-    const [dataWithLeadId, setDataWithLeadId] = useState([]);
-    const [filteredProductList, setFilteredProductList] = useState([]);
-    const [showOrHideFilters, setShowOrHideFilters] = useState(false);
 
     const showFilters = () => {
         if (showOrHideFilters === false) {
@@ -57,13 +58,14 @@ const ClientTable = () => {
 
     useEffect(() => {
         getLeadsData();
+        getContactsData();
     }, []);
 
     useEffect(() => {
-        setRowsToShow(filteredProductList.slice(0, rowPerPage));
-    }, [filteredProductList,rowPerPage]);
+        setRowsToShow(filteredLeadsData.slice(0, rowPerPage));
+    }, [filteredLeadsData, rowPerPage]);
 
-    const totalPage = useMemo(() => Math.ceil(filteredProductList.length / rowPerPage), [filteredProductList.length, rowPerPage]);
+    const totalPage = useMemo(() => Math.ceil(filteredLeadsData.length / rowPerPage), [filteredLeadsData.length, rowPerPage]);
 
     const generatePaginationLinks = () => {
         const paginationLinks = [];
@@ -106,17 +108,28 @@ const ClientTable = () => {
         try {
             const response = await axios.get('http://localhost:10000/api/leads');
             const leadsData = response.data;
-            console.log('Modules:', leadsData.data);
-            setProductList(leadsData.data);
+            // console.log('Leads Modules : ', leadsData.data);
+            setLeadsData(leadsData.data);
         } catch (error) {
-            console.error('Error fetching modules:', error);
+            console.error('Error fetching leads modules : ', error);
+        }
+    };
+
+    const getContactsData = async () => {
+        try {
+            const response = await axios.get('http://localhost:10000/api/contacts');
+            const contactsData = response.data;
+            // console.log('Contacts Modules : ', contactsData.data);
+            setContactsData(contactsData.data);
+        } catch (error) {
+            console.error('Error fetching contacts modules : ', error);
         }
     };
 
     const nextPage = () => {
         const startIndex = rowPerPage * (currentPage + 1);
         const endIndex = startIndex + rowPerPage;
-        const newArray = filteredProductList.slice(startIndex, endIndex);
+        const newArray = filteredLeadsData.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(currentPage + 1);
     };
@@ -124,7 +137,7 @@ const ClientTable = () => {
     const changePage = (value) => {
         const startIndex = value * rowPerPage;
         const endIndex = startIndex + rowPerPage;
-        const newArray = filteredProductList.slice(startIndex, endIndex);
+        const newArray = filteredLeadsData.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         setCurrentPage(value);
     };
@@ -132,7 +145,7 @@ const ClientTable = () => {
     const previousPage = () => {
         const startIndex = (currentPage - 1) * rowPerPage;
         const endIndex = startIndex + rowPerPage;
-        const newArray = filteredProductList.slice(startIndex, endIndex);
+        const newArray = filteredLeadsData.slice(startIndex, endIndex);
         setRowsToShow(newArray);
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -158,7 +171,7 @@ const ClientTable = () => {
     }
 
     const applyFilters = () => {
-        let filtered = productList;
+        let filtered = leadsData;
 
         if (filters.fullName) {
             filtered = filtered.filter(item => item.Full_Name.toLowerCase().includes(filters.fullName.toLowerCase()));
@@ -178,7 +191,7 @@ const ClientTable = () => {
             return filters.sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         });
 
-        setFilteredProductList(filtered);
+        setfilteredLeadsData(filtered);
     };
 
     const handleFilterChange = (event) => {
@@ -205,7 +218,35 @@ const ClientTable = () => {
 
     useEffect(() => {
         applyFilters();
-    }, [filters, productList]);
+    }, [filters, leadsData]);
+
+    // function filterLeadsByCompanyRFLink(leadsData, contactsData) {
+    //     const filteredLeadsWithPartnerType = leadsData.map(lead => {
+    //         const matchingContact = contactsData.find(contact => contact.Company_RF_LINK === lead.AgentReferralLINK);
+    //         if (matchingContact) {
+    //             return {
+    //                 ...lead,
+    //                 PARTNER_TYPE: matchingContact.PARTNER_TYPE
+    //             };
+    //         }
+    //         return null;
+    //     }).filter(lead => lead !== null);
+    //     console.log("Filtered Leads with PARTNER_TYPE:", filteredLeadsWithPartnerType);
+    // }
+
+    // function filterContactsByLeadSource(leadsData,contactsData) {
+    //     const filteredContacts = contactsData.filter(contact =>
+    //         leadsData.some(lead => lead.Lead_Source === contact.LEAD_Source1)
+    //     );
+    //     console.log("Filtered Contacts : ", filteredContacts);
+    // }
+
+    // useEffect(() => {
+    //     if (leadsData && contactsData) {
+    //         filterLeadsByCompanyRFLink(leadsData, contactsData);
+    //         filterContactsByLeadSource(leadsData, contactsData);
+    //     }
+    // }, [leadsData, contactsData]);
 
     return (
         <>
@@ -220,7 +261,7 @@ const ClientTable = () => {
 
             {showOrHideFilters === true ? (
                 <>
-                    <div className='w-full flex flex-col lg:flex-row justify-evenly items-center px-4 pt-4'>
+                    <div className='w-full flex flex-col lg:flex-row justify-evenly items-center px-4 pt-4 gap-2'>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <TextField
                                 label="Full Name"
@@ -255,7 +296,7 @@ const ClientTable = () => {
                                     <MenuItem value="desc">Descending</MenuItem>
                                 </Select>
                             </FormControl>
-                            <div onClick={resetFilterData}  className="flex flex-row justify-end items-center gap-3 text-base text-gray-900 cursor-pointer border border-gray-300 rounded-lg py-4 px-4" >
+                            <div onClick={resetFilterData} className="flex flex-row justify-end items-center gap-3 text-base text-gray-900 cursor-pointer border border-gray-300 rounded-lg py-4 px-4" >
                                 <button> Reset </button>
                                 <TuneIcon />
                             </div>
@@ -389,19 +430,19 @@ const ClientTable = () => {
                             to{" "}
                             <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
                                 {currentPage === totalPage - 1
-                                    ? productList?.length
+                                    ? leadsData?.length
                                     : (currentPage + 1) * rowPerPage}
                             </span>{" "}
                             of{" "}
                             <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
-                                {productList?.length}
+                                {leadsData?.length}
                             </span>{" "}
                             entries
                         </div>
 
                         <div className="flex flex-row justify-center items-center gap-4" >
                             <div> Rows Per Page </div>
-                            <Box sx={{ width: 200}}>
+                            <Box sx={{ width: 200 }}>
                                 <FormControl fullWidth>
                                     <Select
                                         id="rows-per-page"

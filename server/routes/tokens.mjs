@@ -54,6 +54,43 @@ router.get('/leads', async (req, res) => {
     }
 });
 
+async function fetchModules(access_token) {
+    try {
+        const response = await axios.get('https://www.zohoapis.com/crm/v2/Leads', {
+            headers: {
+                Authorization: `Zoho-oauthtoken ${access_token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Leads modules : ', error);
+        throw error;
+    }
+}
+
+router.get('/contacts', async (req, res) => {
+    try {
+        const contactsModules = await fetchContactsModules(access_token);
+        res.json(contactsModules);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+async function fetchContactsModules(access_token) {
+    try {
+        const response = await axios.get('https://www.zohoapis.com/crm/v2/Contacts', {
+            headers: {
+                Authorization: `Zoho-oauthtoken ${access_token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Contacts modules : ', error);
+        throw error;
+    }
+}
+
 export async function refreshAccessToken() {
     try {
         const response = await axios.post('https://accounts.zoho.com/oauth/v2/token', stringify({
@@ -73,20 +110,6 @@ export async function refreshAccessToken() {
         return response;
     } catch (error) {
         console.error('Error refreshing access token:', error);
-        throw error;
-    }
-}
-
-async function fetchModules(access_token) {
-    try {
-        const response = await axios.get('https://www.zohoapis.com/crm/v2/Leads', {
-            headers: {
-                Authorization: `Zoho-oauthtoken ${access_token}`
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching modules:', error);
         throw error;
     }
 }
