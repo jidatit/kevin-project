@@ -47,7 +47,7 @@ const UserLogin = () => {
                         type='password'
                         required
                     />
-                    <div className='my-3' ><h3>Forget Password?</h3></div>
+                    {/* <div className='my-3' ><h3>Forget Password?</h3></div> */}
                     <button
                         type='submit'
                         className='bg-white hover:bg-[#6DB23A] text-[#6DB23A] hover:text-[white] text-lg font-semibold py-2 px-4 w-[100%] border-2 border-[#6DB23A] rounded shadow'>

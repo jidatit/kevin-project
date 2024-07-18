@@ -208,7 +208,7 @@ const ClientTable = () => {
         filtered.sort((a, b) => {
             const dateA = new Date(a.Created_Time);
             const dateB = new Date(b.Created_Time);
-            return filters.sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            return filters.sortOrder === 'desc' ? dateA - dateB : dateB - dateA;
         });
 
         setfilteredLeadsData(filtered);
