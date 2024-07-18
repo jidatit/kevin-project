@@ -13,6 +13,9 @@ import FormControl from '@mui/material/FormControl';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from "@mui/x-date-pickers";
+import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from '../../../AuthContext';
+import { db } from '../../../Firebase';
 
 const style = {
     position: 'absolute',
@@ -29,13 +32,15 @@ const style = {
 
 const ClientTable = () => {
     const [leadsData, setLeadsData] = useState([]);
-    const [contactsData, setContactsData] = useState([]);
     const [dataWithLeadId, setDataWithLeadId] = useState([]);
     const [filteredLeadsData, setfilteredLeadsData] = useState([]);
     const [showOrHideFilters, setShowOrHideFilters] = useState(false);
     const [rowPerPage, setRowPerPage] = useState(10);
     const [rowsToShow, setRowsToShow] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
+
+    const { currentUser } = useAuth();
+    const userID = currentUser?.uid;
 
     const showFilters = () => {
         if (showOrHideFilters === false) {
@@ -58,7 +63,6 @@ const ClientTable = () => {
 
     useEffect(() => {
         getLeadsData();
-        getContactsData();
     }, []);
 
     useEffect(() => {
@@ -100,29 +104,45 @@ const ClientTable = () => {
                 paginationLinks.push(totalPage);
             }
         }
-
         return paginationLinks;
     };
 
     const getLeadsData = async () => {
+        if (!userID) return;
         try {
-            const response = await axios.get('http://localhost:10000/api/leads');
-            const leadsData = response.data;
-            // console.log('Leads Modules : ', leadsData.data);
-            setLeadsData(leadsData.data);
-        } catch (error) {
-            console.error('Error fetching leads modules : ', error);
-        }
-    };
+            const userRef = doc(db, 'users', userID);
+            const dataDoc = await getDoc(userRef);
+            if (dataDoc.exists()) {
+                const userDataDB = dataDoc.data();
+                console.log("UserData : ", userDataDB);
+                const response = await axios.post('http://localhost:10000/api/zoho', {
+                    email: userDataDB.email
+                });
+                const userTypeData = response.data.data[0];
+                console.log('Zoho CRM Data: ', userTypeData);
+                console.log('Lead Source : ', userTypeData.LEAD_Source1);
+                console.log('Agent Reference Code : ', userTypeData.AGENT_RF_CODE);
 
-    const getContactsData = async () => {
-        try {
-            const response = await axios.get('http://localhost:10000/api/contacts');
-            const contactsData = response.data;
-            // console.log('Contacts Modules : ', contactsData.data);
-            setContactsData(contactsData.data);
+                if (userTypeData.LEAD_Source1 === null) {
+                    const agentResponse = await axios.post('http://localhost:10000/api/agentData', {
+                        AGENT_RF_CODE: userTypeData.AGENT_RF_CODE
+                    });
+                    const responseAgentsData = agentResponse.data.data;
+                    console.log("Agent Data : ", responseAgentsData);
+                    setLeadsData(responseAgentsData);
+                } else {
+                    const pmResponse = await axios.post('http://localhost:10000/api/pmData', {
+                        LEAD_Source1: userTypeData.LEAD_Source1
+                    });
+                    const responsePMData = pmResponse.data.data;
+                    console.log("PM Data : ", responsePMData);
+                    setLeadsData(responsePMData);
+                }
+            } else {
+                console.log("No such document!");
+            }
         } catch (error) {
-            console.error('Error fetching contacts modules : ', error);
+            console.error("Error fetching user data: ", error);
         }
     };
 
@@ -219,34 +239,6 @@ const ClientTable = () => {
     useEffect(() => {
         applyFilters();
     }, [filters, leadsData]);
-
-    // function filterLeadsByCompanyRFLink(leadsData, contactsData) {
-    //     const filteredLeadsWithPartnerType = leadsData.map(lead => {
-    //         const matchingContact = contactsData.find(contact => contact.Company_RF_LINK === lead.AgentReferralLINK);
-    //         if (matchingContact) {
-    //             return {
-    //                 ...lead,
-    //                 PARTNER_TYPE: matchingContact.PARTNER_TYPE
-    //             };
-    //         }
-    //         return null;
-    //     }).filter(lead => lead !== null);
-    //     console.log("Filtered Leads with PARTNER_TYPE:", filteredLeadsWithPartnerType);
-    // }
-
-    // function filterContactsByLeadSource(leadsData,contactsData) {
-    //     const filteredContacts = contactsData.filter(contact =>
-    //         leadsData.some(lead => lead.Lead_Source === contact.LEAD_Source1)
-    //     );
-    //     console.log("Filtered Contacts : ", filteredContacts);
-    // }
-
-    // useEffect(() => {
-    //     if (leadsData && contactsData) {
-    //         filterLeadsByCompanyRFLink(leadsData, contactsData);
-    //         filterContactsByLeadSource(leadsData, contactsData);
-    //     }
-    // }, [leadsData, contactsData]);
 
     return (
         <>

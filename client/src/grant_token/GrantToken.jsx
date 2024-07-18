@@ -4,7 +4,7 @@ import { TextField } from '@mui/material';
 const GrantToken = () => {
     const [clientId, setClientId] = useState('');
     const [clientSecret, setClientSecret] = useState('');
-    const [scope, setScope] = useState('ZohoCRM.modules.ALL');
+    const [scope, setScope] = useState('ZohoCRM.modules.ALL,ZohoCRM.org.READ,ZohoCRM.bulk.ALL,ZohoCRM.coql.READ');
     const [redirectUrl, setRedirectUrl] = useState('http://localhost:5173/grant-token/auth-token');
     const [accessType, setAccessType] = useState('offline');
 
@@ -15,6 +15,7 @@ const GrantToken = () => {
         localStorage.setItem('scope', scope);
         localStorage.setItem('redirectUrl', redirectUrl);
         localStorage.setItem('accessType', accessType);
+        console.log("Scope is : ", scope);
         const url = `https://accounts.zoho.com/oauth/v2/auth?response_type=code&client_id=${clientId}&client_secret=${clientSecret}&scope=${scope}&redirect_uri=${redirectUrl}&access_type=${accessType}`;
         window.location.href = url;
     };
