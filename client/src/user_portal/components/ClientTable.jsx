@@ -584,22 +584,22 @@ const ClientTable = () => {
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Internet Sold </label>
-                                        <TextField sx={{ width: "100%" }} id="internetSolidID" value={!dataWithLeadId.Internet_Sold ? 'flase' : 'true'} />
+                                        <TextField sx={{ width: "100%" }} id="internetSolidID" value={!dataWithLeadId.Internet_Sold ? 'false' : 'true'} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > TV Sold </label>
-                                        <TextField sx={{ width: "100%" }} id="tvSolidID" value={!dataWithLeadId.T_V_Sold ? 'flase' : 'true'} />
+                                        <TextField sx={{ width: "100%" }} id="tvSolidID" value={!dataWithLeadId.T_V_Sold ? 'false' : 'true'} />
                                     </div>
                                     <div className=" w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Phone Sold </label>
-                                        <TextField sx={{ width: "100%" }} id="phoneSolidID" value={!dataWithLeadId.Phone_Sold ? 'flase' : 'true'} />
+                                        <TextField sx={{ width: "100%" }} id="phoneSolidID" value={!dataWithLeadId.Phone_Sold ? 'false' : 'true'} />
                                     </div>
                                 </div>
 
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Move Quote Request </label>
-                                        <TextField sx={{ width: "100%" }} id="moveQuoteRequestID" value={!dataWithLeadId.Move_Ref_Sold ? 'flase' : 'true'} />
+                                        <TextField sx={{ width: "100%" }} id="moveQuoteRequestID" value={!dataWithLeadId.Move_Ref_Sold ? 'false' : 'true'} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > Home Monitoring </label>
@@ -614,7 +614,7 @@ const ClientTable = () => {
                                 <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5" >
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > COA / DMV / Voter Update </label>
-                                        <TextField sx={{ width: "100%" }} id="voterUpdateID" value={!dataWithLeadId.Change_of_Address ? 'flase' : 'true'} />
+                                        <TextField sx={{ width: "100%" }} id="voterUpdateID" value={!dataWithLeadId.Change_of_Address ? 'false' : 'true'} />
                                     </div>
                                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                                         <label className="text-sm font-semibold" > New State </label>
