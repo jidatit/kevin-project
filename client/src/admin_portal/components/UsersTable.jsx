@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import { TextField, Button } from '@mui/material';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import { maxHeight } from "@mui/system";
 import { collection, doc, getDocs, getDoc, updateDoc } from "firebase/firestore";
 import { db } from '../../../Firebase';
 import { toast, ToastContainer } from 'react-toastify';
@@ -13,8 +12,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import AddReferral from "./AddReferral";
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import LinkIcon from '@mui/icons-material/Link';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../../../Firebase";
+import LinearProgress from '@mui/material/LinearProgress';
 
 const style = {
     position: 'absolute',
@@ -90,7 +90,6 @@ const UsersTable = () => {
             queryShapshot.forEach((doc) => {
                 usersData.push({ id: doc.id, ...doc.data() });
             });
-            console.log(usersData);
             setProductList(usersData);
         } catch (error) {
             console.error("Error fetching users data : ", error);
@@ -151,7 +150,10 @@ const UsersTable = () => {
     const handleVideoLink = async () => {
         try {
             const userRef = doc(db, 'users', userID);
-            await updateDoc(userRef, { quickLinkVideo: videoInputValue });
+            await updateDoc(userRef, {
+                quickLinkVideo: videoInputValue,
+                videoFileLink: null
+            });
             individualUserData();
             toast.success("Link Added Successfully");
         } catch (error) {
@@ -260,17 +262,40 @@ const UsersTable = () => {
         }
     };
 
+    const [isUploading, setisUploading] = useState(false)
+
+    const handleVideoFileSelection = async (e) => {
+        const file = e.target.files[0];
+        setSelectedVideoFile(file);
+        setisUploading(true)
+
+        if (userID) {
+            const userRef = doc(db, 'users', userID);
+            const userDoc = await getDoc(userRef);
+            const userData = userDoc.data();
+
+            if (userData.quickLinkVideo) {
+                await updateDoc(userRef, { quickLinkVideo: null });
+            }
+
+            await handleVideoFileLink(file, userID);
+            setisUploading(false)
+        }
+    };
+
     const individualUserData = async () => {
+        if (!userID) return;
+
         const userRef = doc(db, 'users', userID);
         const updatedDoc = await getDoc(userRef);
         const data = updatedDoc.data();
-        console.log(data.videoFileLink)
-        setFetchedVideoFileLink(data.videoFileLink);
-        setVideoFetchedLink(data.quickLinkVideo);
-        setFirstFetchedLink(data.quickLinkFirst);
-        setSecondFetchedLink(data.quickLinkSecond);
-        setThirdFetchedLink(data.quickLinkThird);
-        setContactFetchedLink(data.quickLinkContact);
+
+        setFetchedVideoFileLink(data.videoFileLink || "");
+        setVideoFetchedLink(data.quickLinkVideo || "");
+        setFirstFetchedLink(data.quickLinkFirst || "");
+        setSecondFetchedLink(data.quickLinkSecond || "");
+        setThirdFetchedLink(data.quickLinkThird || "");
+        setContactFetchedLink(data.quickLinkContact || "");
     };
 
     useEffect(() => {
@@ -287,15 +312,6 @@ const UsersTable = () => {
 
     const [selectedVideoFile, setSelectedVideoFile] = useState(null);
 
-    const handleVideoFileSelection = async (e) => {
-        const file = e.target.files[0];
-        setSelectedVideoFile(file);
-        console.log(file);
-        if (userID) {
-            await handleVideoFileLink(file, userID)
-        }
-    };
-
     const handleVideoFileLink = async (file, userID) => {
         const storageRef = ref(storage, `${userID}/${file.name}`);
         try {
@@ -304,15 +320,18 @@ const UsersTable = () => {
             const link = await getDownloadURL(storageRef);
 
             const userRef = doc(db, 'users', userID);
-
-            await updateDoc(userRef, { videoFileLink: link });
+            await updateDoc(userRef, {
+                videoFileLink: link,
+                quickLinkVideo: null
+            });
 
             individualUserData();
-
             toast.success("Video Added Successfully");
+            handleClose();
         } catch (error) {
-            toast.error("Error Adding Link");
+            toast.error("Error Adding Video");
         } finally {
+            setSelectedVideoFile(null);
             setVideoInputValue('');
             setIsEditingVideo(false);
         }
@@ -577,93 +596,125 @@ const UsersTable = () => {
 
                                     <div className='w-full h-auto flex flex-col' >
 
-                                        <div className=' w-full flex flex-col justify-center items-center'>
+                                        <div className='w-full flex flex-col justify-center items-center'>
                                             <div className='w-full h-12 mb-[30px] rounded-t-lg bg-[#6DB23A]'></div>
 
-                                            {videoType === "link" &&
-                                                (
-                                                    <>
-                                                        <div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-5 mt-5 px-2">
-                                                            <div className='w-full lg:w-[65%] h-auto flex flex-row justify-between lg:justify-center items-start'>
-                                                                <div className='w-[85%] h-64 rounded-xl bg-gray-200 flex justify-center items-center'>
-                                                                    {videoFetchedLink ? (
-                                                                        <iframe
-                                                                            className="rounded-xl"
-                                                                            width="100%"
-                                                                            height="100%"
-                                                                            src={getEmbedURL(videoFetchedLink)}
-                                                                            title="Embedded Video"
-                                                                            frameBorder="0"
-                                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                                            allowFullScreen
-                                                                        ></iframe>
-                                                                    ) : (
-                                                                        <div className='font-semibold text-3xl'>Video</div>
-                                                                    )}
-                                                                </div>
-                                                                <div className='w-auto h-auto flex justify-start items-start p-4'>
-                                                                    <EditOutlinedIcon
-                                                                        onClick={handleVideoIconClick}
-                                                                        style={{ fontSize: '40px' }}
-                                                                        className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <div className='w-full lg:w-[35%] h-auto flex flex-col justify-start items-start pl-2 lg:pl-0 mt-2'>
-                                                                <div className="text-[#599032] text-xl font-bold py-2">
-                                                                    {userID && videoFetchedLink ? (<div className="text-xl font-semibold cursor-pointer underline break-words" >  {videoFetchedLink} </div>) : (<span className="text-xl font-semibold" > Currently, no link is set to display the video. Please click on edit to add the link </span>)}
-                                                                </div>
-                                                                {isEditingVideo && (
-                                                                    <div className="w-full flex flex-row items-center mt-2">
-                                                                        <TextField
-                                                                            minRows={3}
-                                                                            placeholder="Enter the link"
-                                                                            value={videoInputValue}
-                                                                            onChange={(e) => setVideoInputValue(e.target.value)}
-                                                                            style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
-                                                                        />
-                                                                        <Button
-                                                                            variant="contained"
-                                                                            style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
-                                                                            onClick={handleVideoLink}
-                                                                        >
-                                                                            Submit
-                                                                        </Button>
-                                                                    </div>
+                                            {videoType === "link" && (
+                                                <>
+                                                    <div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-5 mt-5 px-2">
+                                                        <div className='w-full lg:w-[65%] h-auto flex flex-row justify-between lg:justify-center items-start'>
+                                                            <div className='w-[85%] h-64 rounded-xl bg-gray-200 flex justify-center items-center'>
+                                                                {videoFetchedLink ? (
+                                                                    <iframe
+                                                                        className="rounded-xl"
+                                                                        width="100%"
+                                                                        height="100%"
+                                                                        src={getEmbedURL(videoFetchedLink)}
+                                                                        title="Embedded Video"
+                                                                        frameBorder="0"
+                                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                        allowFullScreen
+                                                                    ></iframe>
+                                                                ) : (
+                                                                    <div className='font-semibold text-3xl'>Video</div>
                                                                 )}
                                                             </div>
+                                                            <div className='w-auto h-auto flex justify-start items-start p-4'>
+                                                                <EditOutlinedIcon
+                                                                    onClick={handleVideoIconClick}
+                                                                    style={{ fontSize: '40px' }}
+                                                                    className='text-[#6DB23A] hover:text-[#96d36b] cursor-pointer'
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    </>
-                                                )}
-                                            {videoType === "file" &&
-                                                (
-                                                    <>
-                                                        <div className="w-[80%] flex flex-col justify-center items-center">
-                                                            <video width="60%" height="240" controls>
-                                                                <source src={FetchedVideoFileLink} type="video/mp4" />
-                                                            </video>
-                                                            <label className="block mb-2 text-sm font-medium text-white" htmlFor="file_input">Upload file</label>
-                                                            <input type="file" accept="video/*" onChange={handleVideoFileSelection} className="block w-[60%] text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" id="file_input"></input>
+                                                        <div className='w-full lg:w-[35%] h-auto flex flex-col justify-start items-start pl-2 lg:pl-0 mt-2'>
+                                                            <div className="text-[#599032] text-xl font-bold py-2">
+                                                                {userID && videoFetchedLink ? (
+                                                                    <div className="text-xl font-semibold cursor-pointer underline break-words">
+                                                                        <p className="w-[78%]">
+                                                                            {videoFetchedLink}
+                                                                        </p>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-xl font-semibold">
+                                                                        Currently, no link is set to display the video. Please click on edit to add the link
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {isEditingVideo && (
+                                                                <div className="w-full flex flex-row items-center mt-2">
+                                                                    <TextField
+                                                                        minRows={3}
+                                                                        placeholder="Enter the link"
+                                                                        value={videoInputValue}
+                                                                        onChange={(e) => setVideoInputValue(e.target.value)}
+                                                                        style={{ width: '100%', paddingRight: '10px', fontSize: '16px' }}
+                                                                    />
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        style={{ fontSize: '16px', backgroundColor: '#6DB23A', color: 'white' }}
+                                                                        onClick={handleVideoLink}
+                                                                    >
+                                                                        Submit
+                                                                    </Button>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    </>
-                                                )}
+                                                    </div>
+                                                </>
+                                            )}
 
-                                            {videoType === "" && (<div className="w-full flex-row flex gap-5 justify-center items-center">
+                                            {videoType === "file" && (
+                                                <>
+                                                    <div className="w-[80%] flex flex-col justify-center items-center">
+                                                        {FetchedVideoFileLink && (<video width="60%" height="240" controls>
+                                                            <source src={FetchedVideoFileLink} type="video/mp4" />
+                                                        </video>)}
+                                                        {!FetchedVideoFileLink && (
+                                                            <div className="w-[60%] h-[240px] rounded-lg shadow-lg flex flex-col justify-center items-center">
+                                                                <p className="text-lg">No Video File Uploaded.</p>
+                                                            </div>
+                                                        )}
+                                                        <label className="block mb-2 text-sm font-medium text-white" htmlFor="file_input">Upload file</label>
+                                                        <input
+                                                            type="file"
+                                                            accept="video/*"
+                                                            onChange={handleVideoFileSelection}
+                                                            className="block w-[60%] text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                                            id="file_input"
+                                                        />
+                                                        {isUploading && (
+                                                            <>
+                                                                <LinearProgress color="success" sx={{ width: "50%", height: "10px", marginTop: "20px" }} />
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
 
-                                                <div onClick={() => handleVideoTypeRender("file")} className="w-fit hover:scale-105 transition-all ease-in-out delay-200 cursor-pointer flex flex-col justify-center items-center rounded-lg shadow-lg p-5">
-                                                    <p className="font-semibold text-1xl">Add Video File</p>
-                                                    <VideoLibraryIcon />
+                                            {videoType === "" && (
+                                                <div className="w-full flex-row flex gap-5 justify-center items-center">
+                                                    <div
+                                                        onClick={() => handleVideoTypeRender("file")}
+                                                        className="w-fit hover:scale-105 transition-all ease-in-out delay-200 cursor-pointer flex flex-col justify-center items-center rounded-lg shadow-lg p-5"
+                                                    >
+                                                        <p className="font-semibold text-1xl">Add Video File</p>
+                                                        <VideoLibraryIcon />
+                                                    </div>
+
+                                                    <p className="font-bold text-2xl text-center">Or</p>
+
+                                                    <div
+                                                        onClick={() => handleVideoTypeRender("link")}
+                                                        className="w-fit hover:scale-105 transition-all ease-in-out delay-200 cursor-pointer flex flex-col justify-center items-center rounded-lg shadow-lg p-5"
+                                                    >
+                                                        <p className="font-semibold text-1xl">Add Video Link</p>
+                                                        <LinkIcon />
+                                                    </div>
                                                 </div>
-
-                                                <p className="font-bold text-2xl text-center">Or</p>
-
-                                                <div onClick={() => handleVideoTypeRender("link")} className="w-fit hover:scale-105 transition-all ease-in-out delay-200 cursor-pointer flex flex-col justify-center items-center rounded-lg shadow-lg p-5">
-                                                    <p className="font-semibold text-1xl">Add Video Link</p>
-                                                    <LinkIcon />
-                                                </div>
-
-                                            </div>)}
+                                            )}
                                         </div>
+
 
                                         <div className=' w-full flex flex-col justify-center items-center mt-10 '>
                                             <div className='w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]'>
