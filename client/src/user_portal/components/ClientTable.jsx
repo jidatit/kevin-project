@@ -115,7 +115,7 @@ const ClientTable = () => {
             if (dataDoc.exists()) {
                 const userDataDB = dataDoc.data();
                 console.log("UserData : ", userDataDB);
-                const response = await axios.post('http://localhost:10000/api/zoho', {
+                const response = await axios.post('https://kevin-project.onrender.com/api/zoho', {
                     email: userDataDB.email
                 });
                 const userTypeData = response.data.data[0];
@@ -124,14 +124,14 @@ const ClientTable = () => {
                 console.log('Agent Reference Code : ', userTypeData.AGENT_RF_CODE);
 
                 if (userTypeData.LEAD_Source1 === null) {
-                    const agentResponse = await axios.post('http://localhost:10000/api/agentData', {
+                    const agentResponse = await axios.post('https://kevin-project.onrender.com/api/agentData', {
                         AGENT_RF_CODE: userTypeData.AGENT_RF_CODE
                     });
                     const responseAgentsData = agentResponse.data.data;
                     console.log("Agent Data : ", responseAgentsData);
                     setLeadsData(responseAgentsData);
                 } else {
-                    const pmResponse = await axios.post('http://localhost:10000/api/pmData', {
+                    const pmResponse = await axios.post('https://kevin-project.onrender.com/api/pmData', {
                         LEAD_Source1: userTypeData.LEAD_Source1
                     });
                     const responsePMData = pmResponse.data.data;

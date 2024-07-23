@@ -45,7 +45,7 @@ const Dashboard = () => {
                 <div className=' w-full lg:w-[50%] flex flex-col justify-center items-center'>
                     <div className='w-full h-12 rounded-t-lg bg-[#6DB23A]'></div>
                     <div className='w-[95%] h-64 my-5 rounded-xl bg-gray-200 flex justify-center items-center'>
-                        {userData && userData.quickLinkVideo !== null && (
+                        {userData && userData.quickLinkVideo  && (
                             <iframe
                                 className="rounded-xl"
                                 width="100%"
@@ -56,7 +56,7 @@ const Dashboard = () => {
                                 allowFullScreen
                             ></iframe>
                         )}
-                        {userData && userData.videoFileLink !== null && (
+                        {userData && userData.videoFileLink  && (
                             <video width="100%" height="100%" controls>
                                 <source src={userData.videoFileLink} type="video/mp4" />
                             </video>
