@@ -9,6 +9,7 @@ const Profile = () => {
 	const { currentUser } = useAuth();
 	const userID = currentUser?.uid;
 	const [userData, setUserData] = useState(null);
+	const [leadsData, setleadsData] = useState([]);
 
 	const fetchUserData = async () => {
 		if (!userID) return;
@@ -35,11 +36,29 @@ const Profile = () => {
 				const userDataDB = dataDoc.data();
 				console.log("UserData: ", userDataDB);
 
-				const response = await axios.post("http://localhost:3000/api/zoho", {
-					email: userDataDB.email,
-				});
+				const response = await axios.post(
+					"https://kevin-project.onrender.com/api/zoho",
+					{
+						email: userDataDB.email,
+					},
+				);
 				const userTypeDataList = response.data.data;
+
 				console.log("user data", userTypeDataList);
+
+				// Find the first element with both Company_RF_LINK and RF_CAMPAIGN_NAME
+				const matchedData = userTypeDataList.find(
+					(item) => item.Company_RF_LINK || item.RF_CAMPAIGN_NAME,
+				);
+
+				if (matchedData) {
+					console.log("Matched Data: ", matchedData);
+					setleadsData(matchedData);
+					// Do something with matchedData
+				} else {
+					console.log("No matching data found.");
+				}
+
 				// setLoading(false);
 			} else {
 				console.log("No such document!");
@@ -54,7 +73,7 @@ const Profile = () => {
 	useEffect(() => {
 		if (userID) {
 			fetchUserData();
-			// getLeadsData();
+			getLeadsData();
 		}
 	}, [userID]);
 
@@ -67,7 +86,7 @@ const Profile = () => {
 						Description Information{" "}
 					</div>
 					<div className="w-[95%] h-auto my-5 rounded-xl flex flex-col justify-around items-start gap-3">
-						<div className="w-full py-4 px-6 bg-gray-200 cursor-pointer flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
 								First Name{" "}
@@ -77,7 +96,7 @@ const Profile = () => {
 								{userData ? userData.name.split(" ")[0] : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200 cursor-pointer flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
 								Last Name{" "}
@@ -87,17 +106,17 @@ const Profile = () => {
 								{userData ? userData.name.split(" ")[1] : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200 cursor-pointer flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
 								Agent Company{" "}
 							</h1>
 							<h2 className="font-normal text-sm text-black">
 								{" "}
-								{userData ? userData.agent : "-"}{" "}
+								{leadsData ? leadsData?.RF_CAMPAIGN_NAME : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200 cursor-pointer flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
 								Phone Number{" "}
@@ -107,22 +126,24 @@ const Profile = () => {
 								{userData ? userData.phoneNumber : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200 cursor-pointer flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]"> Email </h1>
 							<h2 className="font-normal text-sm text-black">
 								{" "}
 								{userData ? userData.email : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200 cursor-pointer flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
 								Agent Referral{" "}
 							</h1>
-							<h2 className="font-normal text-sm text-black break-words">
-								{" "}
-								{userData ? userData.referralLink : "-"}{" "}
-							</h2>
+							<a href={leadsData ? leadsData?.Company_RF_LINK : ""}>
+								<h2 className="font-normal text-sm text-black break-words">
+									{" "}
+									{leadsData ? leadsData?.Company_RF_LINK : "-"}{" "}
+								</h2>
+							</a>
 						</div>
 					</div>
 				</div>
