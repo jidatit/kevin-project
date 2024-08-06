@@ -77,7 +77,7 @@ router.post("/zoho", async (req, res) => {
 		const response = await axios.post(
 			"https://www.zohoapis.com/crm/v6/coql",
 			{
-				select_query: `select Full_Name, RF_CAMPAIGN_NAME, Company_RF_LINK, PARTNER_TYPE, LEAD_Source1, Company_RF_LINK, AGENT_RF_CODE from Contacts where (Email = '${email}') limit 2000`,
+				select_query: `select Full_Name, RF_CAMPAIGN_NAME, Company_RF_LINK, PARTNER_TYPE, LEAD_Source1, AGENT_RF_CODE from Contacts where (Email = '${email}') limit 2000`,
 			},
 			{
 				headers: {
