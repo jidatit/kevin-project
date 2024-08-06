@@ -25,6 +25,7 @@ const Loader = () => {
 		</div>
 	);
 };
+
 const style = {
 	position: "absolute",
 	top: "50%",
@@ -41,22 +42,18 @@ const style = {
 const ClientTable = () => {
 	const [leadsData, setLeadsData] = useState([]);
 	const [dataWithLeadId, setDataWithLeadId] = useState([]);
-	const [filteredLeadsData, setfilteredLeadsData] = useState([]);
+	const [filteredLeadsData, setFilteredLeadsData] = useState([]);
 	const [showOrHideFilters, setShowOrHideFilters] = useState(false);
 	const [rowPerPage, setRowPerPage] = useState(10);
 	const [rowsToShow, setRowsToShow] = useState([]);
 	const [currentPage, setCurrentPage] = useState(0);
-	const [loading, setloading] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	const { currentUser } = useAuth();
 	const userID = currentUser?.uid;
 
 	const showFilters = () => {
-		if (showOrHideFilters === false) {
-			setShowOrHideFilters(true);
-		} else {
-			setShowOrHideFilters(false);
-		}
+		setShowOrHideFilters((prev) => !prev);
 	};
 
 	const handleRowPerPageChange = (event) => {
@@ -120,7 +117,7 @@ const ClientTable = () => {
 	};
 
 	const getLeadsData = async () => {
-		setloading(true);
+		setLoading(true);
 		if (!userID) return;
 
 		try {
@@ -171,13 +168,13 @@ const ClientTable = () => {
 					console.log("No matching leads data found.");
 				}
 
-				setloading(false);
+				setLoading(false);
 			} else {
 				console.log("No such document!");
-				setloading(false);
+				setLoading(false);
 			}
 		} catch (error) {
-			setloading(false);
+			setLoading(false);
 			console.error("Error fetching user data: ", error);
 		}
 	};
@@ -215,6 +212,7 @@ const ClientTable = () => {
 		createdTimeFrom: null,
 		createdTimeTo: null,
 		sortOrder: "asc",
+		leadStatus: "",
 	});
 
 	const resetFilterData = () => {
@@ -223,6 +221,7 @@ const ClientTable = () => {
 			createdTimeFrom: null,
 			createdTimeTo: null,
 			sortOrder: "asc",
+			leadStatus: "",
 		});
 	};
 
@@ -249,15 +248,29 @@ const ClientTable = () => {
 				);
 			}
 
-			filtered.sort((a, b) => {
-				const dateA = new Date(a.Created_Time);
-				const dateB = new Date(b.Created_Time);
-				return filters.sortOrder === "desc" ? dateA - dateB : dateB - dateA;
-			});
+			if (filters.sortOrder) {
+				filtered = filtered.sort((a, b) => {
+					const dateA = new Date(a.Created_Time);
+					const dateB = new Date(b.Created_Time);
+					return filters.sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+				});
+			}
 
-			setfilteredLeadsData(filtered);
+			if (filters.leadStatus) {
+				filtered = filtered.filter(
+					(item) =>
+						item.Lead_Status &&
+						item.Lead_Status.toLowerCase() === filters.leadStatus.toLowerCase(),
+				);
+			}
+
+			setFilteredLeadsData(filtered);
 		}
 	};
+
+	useEffect(() => {
+		applyFilters();
+	}, [filters, leadsData]);
 
 	const handleFilterChange = (event) => {
 		const { name, value } = event.target;
@@ -281,14 +294,11 @@ const ClientTable = () => {
 		}));
 	};
 
-	useEffect(() => {
-		applyFilters();
-	}, [filters, leadsData]);
-
-	if (loading) {
-		return <Loader />;
-	}
-
+	// Extract unique lead statuses from leadsData
+	const uniqueLeadStatuses = useMemo(() => {
+		const statuses = leadsData.map((lead) => lead.Lead_Status);
+		return [...new Set(statuses)];
+	}, [leadsData]);
 	return (
 		<>
 			<div className="w-full flex flex-col justify-center items-center">
@@ -305,47 +315,73 @@ const ClientTable = () => {
 
 			{showOrHideFilters === true ? (
 				<>
-					<div className="w-full flex flex-col lg:flex-row justify-evenly items-center px-4 pt-4 gap-2">
+					<div className="w-full flex flex-col lg:flex-row justify-evenly items-center px-4 pt-4 gap-4">
 						<LocalizationProvider dateAdapter={AdapterDayjs}>
-							<TextField
-								label="Full Name"
-								variant="outlined"
-								size="large"
-								name="fullName"
-								value={filters.fullName}
-								onChange={handleFilterChange}
-							/>
-							<DatePicker
-								label="Created Time From"
-								value={filters.createdTimeFrom}
-								onChange={(date) => handleDateChange("createdTimeFrom", date)}
-								renderInput={(params) => <TextField {...params} size="small" />}
-							/>
-							<DatePicker
-								label="Created Time To"
-								value={filters.createdTimeTo}
-								onChange={(date) => handleDateChange("createdTimeTo", date)}
-								renderInput={(params) => <TextField {...params} size="small" />}
-							/>
-							<FormControl size="small" variant="outlined">
-								<InputLabel>Sort Order</InputLabel>
-								<Select
-									value={filters.sortOrder}
+							<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
+								<TextField
+									label="Full Name"
+									variant="outlined"
 									size="large"
-									name="sortOrder"
-									onChange={handleSortOrderChange}
-									label="Sort Created Time"
+									name="fullName"
+									value={filters.fullName}
+									onChange={handleFilterChange}
+									className="w-full"
+								/>
+								<DatePicker
+									label="Created Time From"
+									value={filters.createdTimeFrom}
+									onChange={(date) => handleDateChange("createdTimeFrom", date)}
+									renderInput={(params) => (
+										<TextField {...params} size="small" />
+									)}
+									className="w-full"
+								/>
+								<DatePicker
+									label="Created Time To"
+									value={filters.createdTimeTo}
+									onChange={(date) => handleDateChange("createdTimeTo", date)}
+									renderInput={(params) => (
+										<TextField {...params} size="small" />
+									)}
+									className="w-full"
+								/>
+								<FormControl size="small" variant="outlined" className="w-full">
+									<InputLabel>Sort Order</InputLabel>
+									<Select
+										value={filters.sortOrder}
+										size="small"
+										name="sortOrder"
+										onChange={handleSortOrderChange}
+										label="Sort Order"
+									>
+										<MenuItem value="asc">Ascending</MenuItem>
+										<MenuItem value="desc">Descending</MenuItem>
+									</Select>
+								</FormControl>
+								<FormControl size="small" variant="outlined" className="w-full">
+									<InputLabel>Lead Status</InputLabel>
+									<Select
+										value={filters.leadStatus}
+										size="small"
+										name="leadStatus"
+										onChange={handleFilterChange}
+										label="Lead Status"
+									>
+										<MenuItem value="">All</MenuItem>
+										{uniqueLeadStatuses.map((status, index) => (
+											<MenuItem key={index} value={status}>
+												{status}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<div
+									onClick={resetFilterData}
+									className="flex flex-row justify-center items-center gap-3 text-base text-gray-900 cursor-pointer border border-gray-300 rounded-lg py-2 px-4 w-full"
 								>
-									<MenuItem value="asc">Ascending</MenuItem>
-									<MenuItem value="desc">Descending</MenuItem>
-								</Select>
-							</FormControl>
-							<div
-								onClick={resetFilterData}
-								className="flex flex-row justify-end items-center gap-3 text-base text-gray-900 cursor-pointer border border-gray-300 rounded-lg py-4 px-4"
-							>
-								<button> Reset </button>
-								<TuneIcon />
+									<button>Reset</button>
+									<TuneIcon />
+								</div>
 							</div>
 						</LocalizationProvider>
 					</div>
