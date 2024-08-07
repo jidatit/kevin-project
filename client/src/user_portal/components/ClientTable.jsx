@@ -15,6 +15,8 @@ import { DatePicker } from "@mui/x-date-pickers";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "../../../AuthContext";
 import { db } from "../../../Firebase";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Loader = () => {
 	return (
@@ -176,6 +178,7 @@ const ClientTable = () => {
 		} catch (error) {
 			setLoading(false);
 			console.error("Error fetching user data: ", error);
+			toast.error("No authorized Token");
 		}
 	};
 
@@ -301,6 +304,7 @@ const ClientTable = () => {
 	}, [leadsData]);
 	return (
 		<>
+			<ToastContainer />
 			<div className="w-full flex flex-col justify-center items-center">
 				<div className="w-full h-16 flex flex-row justify-end items-center rounded-t-lg pr-10 bg-[#6DB23A]">
 					<div

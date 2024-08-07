@@ -4,6 +4,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "../../../AuthContext";
 import { db } from "../../../Firebase";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Profile = () => {
 	const { currentUser } = useAuth();
@@ -45,8 +47,6 @@ const Profile = () => {
 				const userTypeDataList = response.data.data;
 
 				console.log("user data", userTypeDataList);
-
-				// Find the first element with both Company_RF_LINK and RF_CAMPAIGN_NAME
 				const matchedData = userTypeDataList.find(
 					(item) => item.Company_RF_LINK || item.RF_CAMPAIGN_NAME,
 				);
@@ -79,6 +79,7 @@ const Profile = () => {
 
 	return (
 		<>
+			<ToastContainer />
 			<div className="w-full h-auto flex flex-col">
 				<div className=" w-full flex flex-col justify-center items-center">
 					<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">

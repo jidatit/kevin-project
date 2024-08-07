@@ -133,7 +133,7 @@ const Layout = () => {
 					} bg-white sm:translate-x-0 z-50`}
 					aria-label="Sidebar"
 				>
-					<div className="relative flex flex-col items-center w-full h-64">
+					<div className="relative flex flex-col items-center w-full h-48">
 						<div className="relative w-full h-full">
 							<label htmlFor="filein">
 								{logoUrl ? (
