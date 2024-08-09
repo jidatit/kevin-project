@@ -90,23 +90,14 @@ const Profile = () => {
 						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
-								First Name{" "}
+								Full Name{" "}
 							</h1>
 							<h2 className="font-normal text-sm text-black">
 								{" "}
-								{userData ? userData.name.split(" ")[0] : "-"}{" "}
+								{userData ? userData.name : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
-							<h1 className="font-semibold text-lg text-[#6DB23A]">
-								{" "}
-								Last Name{" "}
-							</h1>
-							<h2 className="font-normal text-sm text-black">
-								{" "}
-								{userData ? userData.name.split(" ")[1] : "-"}{" "}
-							</h2>
-						</div>
+
 						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
@@ -137,7 +128,7 @@ const Profile = () => {
 						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
-								Agent Referral{" "}
+								Agent Referral Link{" "}
 							</h1>
 							<a href={leadsData ? leadsData?.Company_RF_LINK : ""}>
 								<h2 className="font-normal text-sm text-black break-words">
@@ -149,7 +140,7 @@ const Profile = () => {
 					</div>
 				</div>
 
-				<div className="w-full h-auto mt-8">
+				<div className="w-full h-auto mt-20">
 					<ClientTable />
 				</div>
 			</div>

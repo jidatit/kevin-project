@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CSVLink } from "react-csv";
 import axios from "axios";
 import TuneIcon from "@mui/icons-material/Tune";
@@ -17,6 +17,7 @@ import { useAuth } from "../../../AuthContext";
 import { db } from "../../../Firebase";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import DownloadCsv from "./DownloadCsv";
 
 const Loader = () => {
 	return (
@@ -125,7 +126,7 @@ const ClientTable = () => {
 		try {
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
-			if (dataDoc.exists()) {
+			if (dataDoc) {
 				const userDataDB = dataDoc.data();
 				console.log("UserData: ", userDataDB);
 
@@ -133,6 +134,7 @@ const ClientTable = () => {
 					"https://kevin-project.onrender.com/api/zoho",
 					{ email: userDataDB.email },
 				);
+
 				const userTypeDataList = response.data.data;
 
 				let leadsData = null;
@@ -268,6 +270,7 @@ const ClientTable = () => {
 			}
 
 			setFilteredLeadsData(filtered);
+			console.log("filtereddata", filteredLeadsData);
 		}
 	};
 
@@ -304,6 +307,9 @@ const ClientTable = () => {
 	}, [leadsData]);
 	return (
 		<>
+			<div className=" flex flex-row-reverse items-end">
+				<DownloadCsv rowsToShow={filteredLeadsData} />
+			</div>
 			<ToastContainer />
 			<div className="w-full flex flex-col justify-center items-center">
 				<div className="w-full h-16 flex flex-row justify-end items-center rounded-t-lg pr-10 bg-[#6DB23A]">
@@ -420,6 +426,7 @@ const ClientTable = () => {
 									</th>
 								</tr>
 							</thead>
+							{console.log("rows ", rowsToShow)}
 							{rowsToShow ? (
 								<tbody>
 									{rowsToShow?.map((data, index) => (
@@ -588,26 +595,28 @@ const ClientTable = () => {
 						</table>
 					</div>
 
-					<div className="w-full flex justify-center sm:justify-between xl:flex-row flex-col gap-10 mt-12 lg:mt-8 px-0 lg:px-4 xl:px-4 items-center">
+					<div className="w-full flex flex-col lg:flex-row justify-center sm:justify-between gap-4 sm:gap-10 mt-8 px-0 lg:px-4 xl:px-4 items-center">
+						{/* Showing entries information */}
 						<div className="text-base text-center">
 							Showing
 							<span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg">
 								{currentPage === 0 ? 1 : currentPage * rowPerPage + 1}
 							</span>
-							to{" "}
+							to
 							<span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
 								{currentPage === totalPage - 1
 									? leadsData?.length
 									: (currentPage + 1) * rowPerPage}
-							</span>{" "}
-							of{" "}
+							</span>
+							of
 							<span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
 								{leadsData?.length}
-							</span>{" "}
+							</span>
 							entries
 						</div>
 
-						<div className="flex flex-row justify-center items-center gap-4">
+						{/* Rows per page selection */}
+						<div className="flex flex-col sm:flex-row justify-center items-center gap-4">
 							<div> Rows Per Page </div>
 							<Box sx={{ width: 200 }}>
 								<FormControl fullWidth>
@@ -656,17 +665,18 @@ const ClientTable = () => {
 							</Box>
 						</div>
 
-						<div className="flex">
+						{/* Pagination controls */}
+						<div className="flex justify-center">
 							<ul
-								className="flex justify-center items-center gap-x-[10px] z-30"
+								className="flex justify-center items-center gap-x-2 z-30"
 								role="navigation"
 								aria-label="Pagination"
 							>
 								<li
-									className={` prev-btn flex items-center justify-center w-[36px] rounded-[6px] h-[36px] border-[1px] border-solid border-[#E4E4EB] disabled] ${
+									className={`prev-btn flex items-center justify-center w-9 h-9 rounded-md border ${
 										currentPage == 0
 											? "bg-[#cccccc] pointer-events-none"
-											: " cursor-pointer"
+											: " cursor-pointer border-[#E4E4EB]"
 									}`}
 									onClick={previousPage}
 								>
@@ -677,9 +687,9 @@ const ClientTable = () => {
 									<li
 										key={index}
 										onClick={() => changePage(item - 1)}
-										className={`flex items-center justify-center w-[36px] rounded-[6px] h-[34px] border-solid border-[2px] cursor-pointer ${
+										className={`flex items-center justify-center w-9 h-9 rounded-md border ${
 											currentPage === item - 1
-												? "text-white bg-[#6DB23A]"
+												? "text-white bg-[#6DB23A] border-[#6DB23A]"
 												: "border-[#E4E4EB]"
 										}`}
 									>
@@ -688,10 +698,10 @@ const ClientTable = () => {
 								))}
 
 								<li
-									className={`flex items-center justify-center w-[36px] rounded-[6px] h-[36px] border-[1px] border-solid border-[#E4E4EB] ${
+									className={`flex items-center justify-center w-9 h-9 rounded-md border ${
 										currentPage == totalPage - 1
 											? "bg-[#cccccc] pointer-events-none"
-											: " cursor-pointer"
+											: " cursor-pointer border-[#E4E4EB]"
 									}`}
 									onClick={nextPage}
 								>

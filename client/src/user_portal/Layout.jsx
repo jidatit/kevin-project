@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Outlet, useNavigate, Navigate } from "react-router-dom";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -16,8 +16,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import UserAvatar from "../assets/Avatar.png";
 import Logo from "../assets/Logo.png";
-import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import UploadIcon from "./components/Upload";
+import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
 
 const Loader = () => {
 	return (
@@ -133,31 +133,27 @@ const Layout = () => {
 					} bg-white sm:translate-x-0 z-50`}
 					aria-label="Sidebar"
 				>
-					<div className="relative flex flex-col items-center w-full h-48">
-						<div className="relative w-full h-full">
-							<label htmlFor="filein">
-								{logoUrl ? (
-									<img
-										src={logoUrl}
-										alt="Logo"
-										className="w-full h-full object-contain"
-									/>
-								) : (
-									<img
-										src={Logo}
-										alt="Logo"
-										className="w-full h-full object-contain"
-									/>
-								)}
-							</label>
-							<input
-								type="file"
-								accept="image/*"
-								id="filein"
-								onChange={handleFileUpload}
-								className="absolute top-2 right-2 opacity-0 w-8 h-8 cursor-pointer"
+					<div className="relative flex flex-col items-center w-full h-40 justify-center">
+						<div className="relative w-3/4 h-full">
+							<img
+								src={logoUrl || Logo}
+								alt="Logo"
+								className="w-full h-full object-contain"
 							/>
 						</div>
+						<label
+							htmlFor="filein"
+							className="absolute bottom-2 right-4 cursor-pointer text-gray-800"
+						>
+							<ChangeCircleIcon />
+						</label>
+						<input
+							type="file"
+							accept="image/*"
+							id="filein"
+							onChange={handleFileUpload}
+							className="hidden"
+						/>
 					</div>
 					<div className="flex flex-col justify-center items-center gap-4 mt-8">
 						<div
