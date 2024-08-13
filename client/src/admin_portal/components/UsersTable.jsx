@@ -483,40 +483,6 @@ const UsersTable = () => {
 											>
 												{data?.userType}
 											</td>
-											<td
-												className={`py-2 px-3 text-base  font-normal ${
-													index == 0
-														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
-												} whitespace-nowrap`}
-											>
-												<button
-													onClick={() => handleOpenReferral(data?.id)}
-													className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"
-												>
-													{" "}
-													View Referral{" "}
-												</button>
-											</td>
-											<td
-												className={`py-2 px-3 text-base font-normal ${
-													index == 0
-														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
-												} min-w-[170px]`}
-											>
-												<button
-													onClick={() => handleOpen(data?.id)}
-													className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"
-												>
-													{" "}
-													Change Details{" "}
-												</button>
-											</td>
 										</tr>
 									))}
 							</tbody>

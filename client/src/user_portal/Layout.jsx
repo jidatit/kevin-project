@@ -28,7 +28,7 @@ const Loader = () => {
 };
 
 const Layout = () => {
-	const { logout, currentUser, loading, userType } = useAuth();
+	const { logout, currentUser, loading, userType, isEmailVerified } = useAuth();
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [displayName, setDisplayName] = useState(false);
 	const [showNameInMenu, setShowNameInMenu] = useState(false);
@@ -122,7 +122,7 @@ const Layout = () => {
 		}
 	};
 
-	return currentUser && userType === "user" ? (
+	return currentUser && isEmailVerified && userType === "user" ? (
 		<>
 			<div className="w-full flex flex-cols relative">
 				{/* Right Navbar */}

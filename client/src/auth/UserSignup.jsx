@@ -1,8 +1,11 @@
 import { TextField } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../Firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+	createUserWithEmailAndPassword,
+	sendEmailVerification,
+} from "firebase/auth";
 import bcrypt from "bcryptjs";
 import { doc, setDoc } from "firebase/firestore";
 import { toast, ToastContainer } from "react-toastify";
@@ -10,7 +13,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 const UserSignup = () => {
 	const navigate = useNavigate();
-	const [passwordError, setPasswordError] = useState("");
 	const [userData, setUserData] = useState({
 		name: "",
 		email: "",
@@ -31,7 +33,7 @@ const UserSignup = () => {
 			const { confirmPassword, password, ...userDataWithoutPasswords } =
 				userData;
 			if (confirmPassword !== password) {
-				toast.error("Password Don't Matched");
+				toast.error("Passwords don't match");
 				return;
 			}
 
@@ -49,7 +51,8 @@ const UserSignup = () => {
 				hashedPassword,
 			});
 
-			toast.success("User Registered");
+			await sendEmailVerification(user);
+			toast.success("User registered! Please verify your email.");
 
 			setUserData({
 				name: "",
