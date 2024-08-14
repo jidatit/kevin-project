@@ -248,7 +248,7 @@ const Layout = () => {
 							</Menu>
 						</div>
 					</div>
-					<div className="w-full py-4 px-10 bg-[#F9FFFC]">
+					<div className="w-full py-4 px-10 bg-white">
 						<Outlet />
 					</div>
 				</div>

@@ -351,7 +351,7 @@ const UsersTable = () => {
 			<div className=" w-full flex flex-col justify-center items-center">
 				<ToastContainer />
 				<div className="w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]">
-					<form className="h-auto mt-[-12px] cursor-pointer">
+					{/* <form className="h-auto mt-[-12px] cursor-pointer">
 						<select
 							id="countries"
 							className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4"
@@ -378,7 +378,7 @@ const UsersTable = () => {
 							<option value="7">Last Week</option>
 							<option value="30">Last Month</option>
 						</select>
-					</form>
+					</form> */}
 				</div>
 			</div>
 
@@ -403,9 +403,9 @@ const UsersTable = () => {
 									<th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
 										Status
 									</th>
-									<th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
+									{/* <th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
 										User Type
-									</th>
+									</th> */}
 								</tr>
 							</thead>
 							<tbody>
@@ -472,7 +472,7 @@ const UsersTable = () => {
 											>
 												{"Active"}
 											</td>
-											<td
+											{/* <td
 												className={`py-2 px-3 text-base  font-normal ${
 													index == 0
 														? "border-t-2 border-gray-300"
@@ -482,7 +482,7 @@ const UsersTable = () => {
 												} whitespace-nowrap`}
 											>
 												{data?.userType}
-											</td>
+											</td> */}
 										</tr>
 									))}
 							</tbody>

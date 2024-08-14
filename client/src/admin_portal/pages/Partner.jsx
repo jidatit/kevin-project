@@ -301,9 +301,9 @@ const PartnerType = () => {
 	];
 
 	return (
-		<div className="max-w-3xl h-auto mx-auto p-6 bg-white shadow-md rounded-lg">
+		<div className="max-w-3xl h-auto py-6 bg-white  rounded-lg">
 			<ToastContainer />
-			<div className="container px-4 mx-auto">
+			<div className="container px-4">
 				<div className="mx-auto p-6 pb-1 border bg-white rounded-md shadow-dashboard">
 					<div className="flex flex-wrap items-center justify-between mb-1 -m-2">
 						<div className="w-auto p-2">
@@ -311,19 +311,18 @@ const PartnerType = () => {
 								Partner Types
 							</h2>
 							<p className="text-xs text-coolGray-500 font-medium">
-								Manage your partner types
+								Manage details for your partner types
 							</p>
 						</div>
 					</div>
 					<div className="flex flex-wrap">
 						{types.map((type, index) => (
-							<div key={index} className="w-full">
+							<div key={index} className="w-full border-b border-gray-300">
 								<div className="flex flex-wrap items-center justify-between py-4 -m-2">
 									<div className="w-auto p-2">
 										<div className="flex flex-wrap items-center -m-2">
-											<div className="w-auto p-2">
+											{/* <div className="w-auto p-2">
 												<div className="flex items-center justify-center w-12 h-12 bg-yellow-50 rounded-md">
-													{/* Replace with appropriate SVG or icon */}
 													<svg
 														xmlns="http://www.w3.org/2000/svg"
 														fill="none"
@@ -337,14 +336,14 @@ const PartnerType = () => {
 														></path>
 													</svg>
 												</div>
-											</div>
+											</div> */}
 											<div className="w-auto p-2">
 												<h2 className="text-sm font-medium text-coolGray-900">
 													{type}
 												</h2>
-												<h3 className="text-xs font-medium text-coolGray-400">
+												{/* <h3 className="text-xs font-medium text-coolGray-400">
 													Description
-												</h3>
+												</h3> */}
 											</div>
 										</div>
 									</div>
