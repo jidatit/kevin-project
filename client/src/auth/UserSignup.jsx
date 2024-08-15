@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import { doc, setDoc } from "firebase/firestore";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Timestamp } from "firebase/firestore";
 
 const UserSignup = () => {
 	const navigate = useNavigate();
@@ -49,6 +50,7 @@ const UserSignup = () => {
 			await setDoc(doc(db, "users", user.uid), {
 				...userDataWithoutPasswords,
 				hashedPassword,
+				createdAt: Timestamp.now(),
 			});
 
 			await sendEmailVerification(user);
