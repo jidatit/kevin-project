@@ -11,6 +11,7 @@ import { useAuth } from "../../../AuthContext";
 import { db } from "../../../Firebase";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 const Loader = () => {
 	return (
 		<div className="fixed top-0 left-0 w-full h-full flex items-center justify-center  opacity-75 z-50">
@@ -57,11 +58,9 @@ const Dashboard = () => {
 				);
 				const userTypeDataList = response.data.data;
 
-				console.log("user data", userTypeDataList);
 				const matchedData = userTypeDataList.find((item) => item.PARTNER_TYPE);
 
 				if (matchedData) {
-					console.log("Matched Data: ", matchedData);
 					setleadsData(matchedData);
 
 					// Retrieve the PARTNER_TYPE from the matchedData
@@ -77,7 +76,7 @@ const Dashboard = () => {
 					if (!partnerSnapshot.empty) {
 						// Assuming you want to use only the first matching document
 						const partnerDocData = partnerSnapshot.docs[0].data();
-						console.log("Partner Data: ", partnerDocData);
+
 						setpartnerData(partnerDocData);
 					} else {
 						console.log("No partner data found for this PARTNER_TYPE.");
@@ -91,6 +90,8 @@ const Dashboard = () => {
 			setLoading(false);
 		} catch (error) {
 			console.error("Error fetching user data: ", error);
+			toast.error("Unable to get Zoho Data");
+			setLoading(false);
 		}
 	};
 
@@ -110,135 +111,142 @@ const Dashboard = () => {
 
 	return (
 		<>
-			{loading ? (
-				<Loader />
-			) : (
-				<div className="w-full h-auto flex flex-col mb-6">
-					<div className="w-full lg:w-[50%] flex flex-col justify-center items-center">
-						<div className="w-full h-12 rounded-t-lg bg-[#6DB23A]"></div>
-						<div className="w-[95%] max-w-full max-h-[75vh] my-5 rounded-xl bg-gray-200 flex justify-center items-center">
-							{console.log("partner comp", partnerData)}
+			<ToastContainer />
+			<div
+				className={`w-full h-auto flex flex-col mb-6 ${loading ? "opacity-50" : "opacity-100"}`}
+			>
+				<div className="w-full lg:w-[50%] flex flex-col justify-center items-center ">
+					<div className="w-full h-12 rounded-t-lg bg-[#6DB23A]"></div>
+					<div className="w-[95%] max-w-full max-h-[75vh] my-5 rounded-xl bg-gray-200 flex justify-center items-center">
+						{console.log("partner comp", partnerData)}
 
-							{partnerData?.quickLinkVideo && (
-								<iframe
-									className="rounded-xl w-full h-full"
-									src={getEmbedURL(partnerData.quickLinkVideo)}
-									title="Embedded Video"
-									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-									allowFullScreen
-								></iframe>
-							)}
+						{partnerData?.quickLinkVideo && (
+							<iframe
+								className="rounded-xl w-full h-full"
+								src={getEmbedURL(partnerData.quickLinkVideo)}
+								title="Embedded Video"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowFullScreen
+							></iframe>
+						)}
 
-							{partnerData?.videoFileLink && (
-								<video className="w-full h-full" controls>
-									<source src={partnerData.videoFileLink} type="video/mp4" />
-								</video>
-							)}
-						</div>
+						{partnerData?.videoFileLink && (
+							<video className="w-full h-full" controls>
+								<source src={partnerData.videoFileLink} type="video/mp4" />
+							</video>
+						)}
+					</div>
+				</div>
+
+				<div className=" w-full flex flex-col justify-center items-center mt-2">
+					<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">
+						{" "}
+						Quick Links{" "}
 					</div>
 
-					<div className=" w-full flex flex-col justify-center items-center mt-2">
-						<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">
-							{" "}
-							Quick Links{" "}
-						</div>
-
-						<div className="w-full h-auto flex flex-col lg:flex-row justify-around items-start gap-3 mt-5 mb-3 px-4">
-							<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
-								<div className="text-lg text-[#6DB23A] font-bold">
-									Click Here to Schedule a Call
-								</div>
-								<div className="flex flex-col  text-[#619f34] text-sm font-semibold cursor-pointer">
-									{console.log("link", partnerData?.quickLinkFirst)}
-									{partnerData?.quickLinkFirst ? (
-										<a
-											href={
-												partnerData.quickLinkFirst.startsWith("http://") ||
-												partnerData.quickLinkFirst.startsWith("https://")
-													? partnerData.quickLinkFirst
-													: `https://${partnerData.quickLinkFirst}` // Default to HTTPS if no protocol
-											}
-											className="underline break-words"
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											{partnerData.quickLinkFirst}
-										</a>
-									) : (
-										<span>No Link Available</span>
-									)}
-								</div>
+					<div className="w-full h-auto flex flex-col lg:flex-row justify-around items-start gap-3 mt-5 mb-3 px-4">
+						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+							<div className="text-lg text-[#6DB23A] font-bold">
+								Click Here to Schedule a Call
 							</div>
-							<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
-								<div className="text-lg text-[#6DB23A] font-bold">
-									Go to Settings in Concierge
-								</div>
-								<div className="text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer">
-									{partnerData?.quickLinkSecond ? (
-										<Link
-											to={partnerData.quickLinkSecond}
-											className="underline break-words"
-										>
-											{" "}
-											{partnerData.quickLinkSecond}{" "}
-										</Link>
-									) : (
-										<span> No Link Available </span>
-									)}
-								</div>
+							<div className="flex flex-col  text-[#619f34] text-sm font-semibold cursor-pointer">
+								{console.log("link", partnerData?.quickLinkFirst)}
+								{partnerData?.quickLinkFirst ? (
+									<a
+										href={
+											partnerData.quickLinkFirst.startsWith("http://") ||
+											partnerData.quickLinkFirst.startsWith("https://")
+												? partnerData.quickLinkFirst
+												: `https://${partnerData.quickLinkFirst}`
+										}
+										className="underline break-words"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										{partnerData.quickLinkFirst}
+									</a>
+								) : (
+									<span>No Link Available</span>
+								)}
 							</div>
 						</div>
-
-						<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 px-4">
-							<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
-								<div className="text-lg text-[#6DB23A] font-bold">
-									Email Support Team
-								</div>
-								<div className="text-sm flex flex-col text-[#619f34] font-semibold cursor-pointer">
-									{partnerData?.quickLinkThird ? (
-										<a
-											href={`mailto:${partnerData.quickLinkThird}`}
-											className="underline break-words"
-										>
-											{partnerData.quickLinkThird}
-										</a>
-									) : (
-										<span>No Link Available</span>
-									)}
-								</div>
+						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+							<div className="text-lg text-[#6DB23A] font-bold">
+								Go to Settings in Concierge
+							</div>
+							<div className="text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer">
+								{partnerData?.quickLinkSecond ? (
+									<a
+										href={
+											partnerData.quickLinkSecond.startsWith("http://") ||
+											partnerData.quickLinkSecond.startsWith("https://")
+												? partnerData.quickLinkSecond
+												: `https://${partnerData.quickLinkSecond}`
+										}
+										className="underline break-words"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										{" "}
+										{partnerData.quickLinkSecond}{" "}
+									</a>
+								) : (
+									<span> No Link Available </span>
+								)}
 							</div>
 						</div>
 					</div>
 
-					<div className=" w-full flex flex-col justify-start items-start mt-7">
-						<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">
-							{" "}
-							Contact My Account Executive{" "}
-						</div>
-
-						<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 px-4">
-							<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 mt-3 bg-gray-200 rounded-xl">
-								<div className="text-lg text-[#6DB23A] font-bold">
-									Contact Number
-								</div>
-								<div className="text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer">
-									{partnerData?.quickLinkContact ? (
-										<Link
-											href={partnerData.quickLinkContact}
-											className="break-words"
-										>
-											{" "}
-											{partnerData.quickLinkContact}{" "}
-										</Link>
-									) : (
-										<span> No Number Available </span>
-									)}
-								</div>
+					<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 px-4">
+						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+							<div className="text-lg text-[#6DB23A] font-bold">
+								Email Support Team
+							</div>
+							<div className="text-sm flex flex-col text-[#619f34] font-semibold cursor-pointer">
+								{partnerData?.quickLinkThird ? (
+									<a
+										href={`mailto:${partnerData.quickLinkThird}`}
+										className="underline break-words"
+									>
+										{partnerData.quickLinkThird}
+									</a>
+								) : (
+									<span>No Link Available</span>
+								)}
 							</div>
 						</div>
 					</div>
 				</div>
-			)}
+
+				<div className=" w-full flex flex-col justify-start items-start mt-7">
+					<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">
+						{" "}
+						Contact My Account Executive{" "}
+					</div>
+
+					<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 px-4">
+						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 mt-3 bg-gray-200 rounded-xl">
+							<div className="text-lg text-[#6DB23A] font-bold">
+								Contact Number
+							</div>
+							<div className="text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer">
+								{partnerData?.quickLinkContact ? (
+									<Link
+										href={partnerData.quickLinkContact}
+										className="break-words"
+									>
+										{" "}
+										{partnerData.quickLinkContact}{" "}
+									</Link>
+								) : (
+									<span> No Number Available </span>
+								)}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			{loading && <Loader />}
 		</>
 	);
 };
