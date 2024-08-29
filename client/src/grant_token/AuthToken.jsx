@@ -50,7 +50,7 @@ const AuthToken = () => {
 
     const generateTokens = async () => {
         try {
-            const response = await axios.post('https://kevin-project.onrender.com/api/accessAndRefreshToken', {
+            const response = await axios.post('https://kevin-project-zfc8.onrender.com/api/accessAndRefreshToken', {
                 client_id: clientId,
                 client_secret: clientSecret,
                 redirect_uri: redirectUrl,

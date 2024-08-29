@@ -39,7 +39,7 @@ const Profile = () => {
 				console.log("UserData: ", userDataDB);
 
 				const response = await axios.post(
-					"https://kevin-project.onrender.com/api/zoho",
+					"https://kevin-project-zfc8.onrender.com/api/zoho",
 					{
 						email: userDataDB.email,
 					},
