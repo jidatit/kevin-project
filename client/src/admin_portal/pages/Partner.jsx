@@ -416,7 +416,7 @@ const PartnerType = () => {
 										<>
 											<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-5 mt-5 px-2">
 												<div className="w-full lg:w-[65%] h-auto flex flex-row justify-between lg:justify-center items-start">
-													<div className="w-[85%] h-64 rounded-xl bg-gray-200 flex justify-center items-center">
+													<div className="w-[85%] h-96 rounded-xl bg-gray-200 flex justify-center items-center">
 														{videoFetchedLink ? (
 															<iframe
 																className="rounded-xl"

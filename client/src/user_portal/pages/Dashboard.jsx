@@ -115,9 +115,9 @@ const Dashboard = () => {
 			<div
 				className={`w-full h-auto flex flex-col mb-6 ${loading ? "opacity-50" : "opacity-100"}`}
 			>
-				<div className="w-full lg:w-[50%] flex flex-col justify-center items-center ">
+				<div className="w-full lg:w-[60%] flex flex-col justify-center items-center ">
 					<div className="w-full h-12 rounded-t-lg bg-[#6DB23A]"></div>
-					<div className="w-[95%] max-w-full max-h-[75vh] my-5 rounded-xl bg-gray-200 flex justify-center items-center">
+					<div className="w-[95%] max-w-full h-96 max-h-[75vh] my-5 rounded-xl bg-gray-200 flex justify-center items-center">
 						{console.log("partner comp", partnerData)}
 
 						{partnerData?.quickLinkVideo && (
