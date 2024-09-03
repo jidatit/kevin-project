@@ -5,7 +5,7 @@ const GrantToken = () => {
     const [clientId, setClientId] = useState('');
     const [clientSecret, setClientSecret] = useState('');
     const [scope, setScope] = useState('ZohoCRM.modules.ALL,ZohoCRM.org.READ,ZohoCRM.bulk.ALL,ZohoCRM.coql.READ');
-    const [redirectUrl, setRedirectUrl] = useState('https://partner-portal.settlinginconcierge.com/grant-token/auth-token');
+    const [redirectUrl, setRedirectUrl] = useState('https://partnerportal.settlinginconcierge.com/grant-token/auth-token');
     const [accessType, setAccessType] = useState('offline');
 
     const handleSubmit = (event) => {
