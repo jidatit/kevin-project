@@ -77,7 +77,7 @@ router.post("/zoho", async (req, res) => {
 		const response = await axios.post(
 			"https://www.zohoapis.com/crm/v6/coql",
 			{
-				select_query: `select Full_Name, RF_CAMPAIGN_NAME, Company_RF_LINK, PARTNER_TYPE, LEAD_Source1, AGENT_RF_CODE from Contacts where (Email = '${email}') limit 2000`,
+				select_query: `select Full_Name,Pick_List_9, RF_CAMPAIGN_NAME, Company_RF_LINK, PARTNER_TYPE, LEAD_Source1, AGENT_RF_CODE from Contacts where (Email = '${email}') limit 2000`,
 			},
 			{
 				headers: {
@@ -98,7 +98,7 @@ router.post("/agentData", async (req, res) => {
 		const response = await axios.post(
 			"https://www.zohoapis.com/crm/v6/coql",
 			{
-				select_query: `select id, Full_Name, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Agent_APP_Credentials, Agent_Preferred_Method_of_Reward_Fulfillment, Agent_Reimbursement from Leads where AgentReferralCode = '${AGENT_RF_CODE}' limit 2000`,
+				select_query: `select id, Full_Name,Pick_List_9, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Agent_APP_Credentials, Agent_Preferred_Method_of_Reward_Fulfillment, Agent_Reimbursement from Leads where AgentReferralCode = '${AGENT_RF_CODE}' limit 2000`,
 			},
 			{
 				headers: {

@@ -14,10 +14,12 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "../../../AuthContext";
+import { Typography, IconButton } from "@mui/material";
 import { db } from "../../../Firebase";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DownloadCsv from "./DownloadCsv";
+import CloseIcon from "@mui/icons-material/Close";
 
 const Loader = () => {
 	return (
@@ -51,7 +53,13 @@ const ClientTable = () => {
 	const [rowsToShow, setRowsToShow] = useState([]);
 	const [currentPage, setCurrentPage] = useState(0);
 	const [loading, setLoading] = useState(false);
-
+	const [showModal, setShowModal] = useState(false);
+	const [imageUrl, setImageUrl] = useState("");
+	const handleClose = () => setShowModal(false);
+	const handleShow = (url) => {
+		setImageUrl(url);
+		setShowModal(true);
+	};
 	const { currentUser } = useAuth();
 	const userID = currentUser?.uid;
 
@@ -128,7 +136,6 @@ const ClientTable = () => {
 			const dataDoc = await getDoc(userRef);
 			if (dataDoc) {
 				const userDataDB = dataDoc.data();
-				console.log("UserData: ", userDataDB);
 
 				const response = await axios.post(
 					"https://kevin-project-zfc8.onrender.com/api/zoho",
@@ -139,8 +146,6 @@ const ClientTable = () => {
 
 				let leadsData = null;
 				for (let userTypeData of userTypeDataList) {
-					console.log("Zoho CRM Data: ", userTypeData);
-
 					if (userTypeData.LEAD_Source1) {
 						console.log("Lead Source: ", userTypeData.LEAD_Source1);
 						const pmResponse = await axios.post(
@@ -154,13 +159,12 @@ const ClientTable = () => {
 					}
 
 					if (userTypeData.AGENT_RF_CODE) {
-						console.log("Agent Reference Code: ", userTypeData.AGENT_RF_CODE);
 						const agentResponse = await axios.post(
 							"https://kevin-project-zfc8.onrender.com/api/agentData",
 							{ AGENT_RF_CODE: userTypeData.AGENT_RF_CODE },
 						);
 						const responseAgentsData = agentResponse.data.data;
-						console.log("Agent Data: ", responseAgentsData);
+
 						leadsData = responseAgentsData;
 						break;
 					}
@@ -270,7 +274,6 @@ const ClientTable = () => {
 			}
 
 			setFilteredLeadsData(filtered);
-			console.log("filtereddata", filteredLeadsData);
 		}
 	};
 
@@ -426,7 +429,7 @@ const ClientTable = () => {
 									</th>
 								</tr>
 							</thead>
-							{console.log("rows ", rowsToShow)}
+
 							{rowsToShow ? (
 								<tbody>
 									{rowsToShow?.map((data, index) => (
@@ -513,6 +516,23 @@ const ClientTable = () => {
 												</button>
 											</td>
 											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: index === rowsToShow?.length
+															? "border-y"
+															: "border-t"
+												} whitespace-nowrap`}
+											>
+												<button
+													onClick={handleShow(data?.Pick_List_9)}
+													className="bg-[#6DB23A] rounded-3xl text-white py-1 px-4"
+												>
+													View Image
+												</button>
+											</td>
+
+											<td
 												className={`py-2 px-3 text-base  font-normal ${
 													index == 0
 														? "border-t-2 border-gray-300"
@@ -586,6 +606,46 @@ const ClientTable = () => {
 													Download CSV
 												</CSVLink>
 											</td>
+											<Modal
+												open={showModal}
+												onClose={handleClose}
+												aria-labelledby="modal-title"
+												aria-describedby="modal-description"
+											>
+												<Box
+													sx={{
+														position: "absolute",
+														top: "50%",
+														left: "50%",
+														transform: "translate(-50%, -50%)",
+														width: 400,
+														bgcolor: "background.paper",
+														border: "2px solid #6DB23A",
+														boxShadow: 24,
+														p: 4,
+													}}
+												>
+													<IconButton
+														onClick={handleClose}
+														sx={{ position: "absolute", top: 8, right: 8 }}
+													>
+														<CloseIcon />
+													</IconButton>
+													<Typography
+														id="modal-title"
+														variant="h6"
+														component="h2"
+													>
+														Image Preview
+													</Typography>
+													<Box
+														component="img"
+														src={imageUrl}
+														alt="Preview"
+														sx={{ width: "100%", mt: 2 }}
+													/>
+												</Box>
+											</Modal>
 										</tr>
 									))}
 								</tbody>

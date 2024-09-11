@@ -18,6 +18,7 @@ import UserAvatar from "../assets/Avatar.png";
 import Logo from "../assets/Logo.png";
 import UploadIcon from "./components/Upload";
 import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
+import EditIcon from "@mui/icons-material/Edit";
 
 const Loader = () => {
 	return (
@@ -145,7 +146,7 @@ const Layout = () => {
 							htmlFor="filein"
 							className="absolute bottom-2 right-4 cursor-pointer text-gray-800"
 						>
-							<ChangeCircleIcon />
+							<EditIcon />
 						</label>
 						<input
 							type="file"
@@ -157,21 +158,36 @@ const Layout = () => {
 					</div>
 					<div className="flex flex-col justify-center items-center gap-4 mt-8">
 						<div
-							onClick={() => navigate("/user_portal/")}
+							onClick={() => {
+								navigate("/user_portal/");
+								if (window.innerWidth < 768) {
+									toggleCloseSidebar();
+								}
+							}}
 							className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer"
 						>
 							<DashboardOutlinedIcon />
 							Dashboard
 						</div>
 						<div
-							onClick={() => navigate("/user_portal/profile")}
+							onClick={() => {
+								navigate("/user_portal/profile");
+								if (window.innerWidth < 768) {
+									toggleCloseSidebar();
+								}
+							}}
 							className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer"
 						>
 							<AccountBoxOutlinedIcon />
 							Profile
 						</div>
 						<div
-							onClick={() => navigate("/user_portal/clients")}
+							onClick={() => {
+								navigate("/user_portal/clients");
+								if (window.innerWidth < 768) {
+									toggleCloseSidebar();
+								}
+							}}
 							className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer"
 						>
 							<PeopleOutlineOutlinedIcon />

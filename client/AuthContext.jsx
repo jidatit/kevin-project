@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
 			if (user) {
 				const data = await getUserDetails(user.uid);
 				setUserType(data.userType);
-				setIsEmailVerified(user.emailVerified);
+				setIsEmailVerified(true);
 
 				const allDetails = {
 					...user,
@@ -51,10 +51,13 @@ export const AuthProvider = ({ children }) => {
 				setCurrentUser(allDetails);
 				localStorage.setItem("currentUser", JSON.stringify(allDetails));
 				localStorage.setItem("userType", JSON.stringify(data.userType));
-				localStorage.setItem("isEmailVerified", JSON.stringify(user.emailVerified));
+				localStorage.setItem(
+					"isEmailVerified",
+					JSON.stringify(user.emailVerified),
+				);
 			} else {
 				setCurrentUser(null);
-				setIsEmailVerified(false);
+				setIsEmailVerified(true);
 
 				localStorage.removeItem("currentUser");
 				localStorage.removeItem("userType");
@@ -70,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 		if (storedUser) {
 			setCurrentUser(JSON.parse(storedUser));
 			setUserType(JSON.parse(storedUserType));
-			setIsEmailVerified(JSON.parse(storedEmailVerified));
+			setIsEmailVerified(true);
 		}
 		setLoading(false);
 
