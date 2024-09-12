@@ -215,6 +215,21 @@ const Dashboard = () => {
 								)}
 							</div>
 						</div>
+						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+							<div className="text-lg text-[#6DB23A] font-bold">
+								Agent Referral Link{" "}
+							</div>
+							<div className="text-sm flex flex-col text-[#619f34] font-semibold cursor-pointer">
+								{leadsData?.Company_RF_LINK ? (
+									<h2 className="font-normal text-sm text-black break-words">
+										{" "}
+										{leadsData ? leadsData?.Company_RF_LINK : "-"}{" "}
+									</h2>
+								) : (
+									<span>No Link Available</span>
+								)}
+							</div>
+						</div>
 					</div>
 				</div>
 
