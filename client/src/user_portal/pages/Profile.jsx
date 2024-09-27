@@ -42,10 +42,12 @@ const Profile = () => {
 					);
 
 					const userTypeDataList = response.data.data.data;
+					console.log("zoho response,", response, userTypeDataList);
 
 					const matchedData = userTypeDataList.find(
 						(item) => item.Company_RF_LINK || item.RF_CAMPAIGN_NAME,
 					);
+					console.log("matched data", matchedData);
 
 					if (matchedData) {
 						setleadsData(matchedData);
