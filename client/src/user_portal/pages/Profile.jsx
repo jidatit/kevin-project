@@ -41,7 +41,7 @@ const Profile = () => {
 						{ email: userDataDB.email },
 					);
 
-					const userTypeDataList = response.data.data;
+					const userTypeDataList = response.data.data.data;
 
 					const matchedData = userTypeDataList.find(
 						(item) => item.Company_RF_LINK || item.RF_CAMPAIGN_NAME,

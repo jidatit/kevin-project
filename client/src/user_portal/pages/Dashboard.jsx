@@ -57,8 +57,8 @@ const Dashboard = () => {
 					},
 				);
 
-				if (response.data.success) {
-					const userTypeDataList = response.data.data;
+				if (response.data.data.success) {
+					const userTypeDataList = response.data.data.data;
 					const matchedData = userTypeDataList.find(
 						(item) => item.PARTNER_TYPE,
 					);
