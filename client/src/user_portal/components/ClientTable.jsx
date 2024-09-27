@@ -149,23 +149,22 @@ const ClientTable = () => {
 				"https://kevin-project-zfc8.onrender.com/api/zoho",
 				{ email: userDataDB.email },
 			);
+
+			// Assuming response.data.data.data is an array
 			const userTypeDataList = response.data.data.data;
-			console.log("api/zoho", response, userTypeDataList);
+			console.log("api/zoho response:", response);
+			console.log("User Type Data List:", userTypeDataList);
 
 			// Function to fetch PM or agent data based on the response structure
-			const fetchLeadData = async (leadSource) => {
+			const fetchLeadData = async (leadSource, leadCode) => {
 				const endpoint = leadSource === "LEAD_Source1" ? "pmData" : "agentData";
-				const leadCode =
-					leadSource === "LEAD_Source1"
-						? userTypeDataList.LEAD_Source1
-						: userTypeDataList.AGENT_RF_CODE;
 
 				try {
 					const leadResponse = await axios.post(
 						`https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
 						{ [leadSource]: leadCode },
 					);
-					console.log(`api/${endpoint}`, leadResponse);
+					console.log(`api/${endpoint} response:`, leadResponse);
 
 					// Check response structure
 					if (leadResponse.data.success) {
@@ -177,7 +176,7 @@ const ClientTable = () => {
 						return null; // Return null if the response indicates failure
 					}
 				} catch (error) {
-					console.error(`Error fetching ${leadSource} data: `, error);
+					console.error(`Error fetching ${leadSource} data:`, error);
 					toast.error(
 						`Failed to retrieve ${leadSource.toLowerCase()} data. Please try again later.`,
 					);
@@ -189,12 +188,23 @@ const ClientTable = () => {
 
 			// Iterate over userTypeDataList to find leads
 			for (let userTypeData of userTypeDataList) {
-				if (userTypeData.LEAD_Source1) {
-					leadsData = await fetchLeadData("LEAD_Source1");
+				const leadSource1 = userTypeData.LEAD_Source1;
+				const agentRFCode = userTypeData.AGENT_RF_CODE;
+
+				// Log the values to debug
+				console.log("Checking User Type Data:", userTypeData);
+				console.log("LEAD_Source1:", leadSource1);
+				console.log("AGENT_RF_CODE:", agentRFCode);
+
+				// Check for LEAD_Source1
+				if (leadSource1) {
+					leadsData = await fetchLeadData("LEAD_Source1", leadSource1);
 					if (leadsData) break; // Break if leadsData is found
 				}
-				if (userTypeData.AGENT_RF_CODE) {
-					leadsData = await fetchLeadData("AGENT_RF_CODE");
+
+				// Check for AGENT_RF_CODE
+				if (agentRFCode) {
+					leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode);
 					if (leadsData) break; // Break if leadsData is found
 				}
 			}
@@ -206,7 +216,7 @@ const ClientTable = () => {
 				toast.warning("No matching leads data found.");
 			}
 		} catch (error) {
-			console.error("Error fetching user data: ", error);
+			console.error("Error fetching user data:", error);
 			toast.error("Error retrieving user data. Please try again.");
 		} finally {
 			setLoading(false); // Ensure loading is set to false in all cases
@@ -345,7 +355,7 @@ const ClientTable = () => {
 						onClick={showFilters}
 						className="flex flex-row justify-end items-center gap-3 font-semibold text-base text-white cursor-pointer"
 					>
-						<button> Filter </button>
+						<button> FILTER </button>
 						<TuneIcon />
 					</div>
 				</div>
