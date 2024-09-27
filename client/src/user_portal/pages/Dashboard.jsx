@@ -46,9 +46,9 @@ const Dashboard = () => {
 			setLoading(true);
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
+
 			if (dataDoc.exists()) {
 				const userDataDB = dataDoc.data();
-				console.log("UserData: ", userDataDB);
 
 				const response = await axios.post(
 					"https://kevin-project-zfc8.onrender.com/api/zoho",
@@ -56,41 +56,47 @@ const Dashboard = () => {
 						email: userDataDB.email,
 					},
 				);
-				const userTypeDataList = response.data.data;
 
-				const matchedData = userTypeDataList.find((item) => item.PARTNER_TYPE);
-
-				if (matchedData) {
-					setleadsData(matchedData);
-
-					// Retrieve the PARTNER_TYPE from the matchedData
-					const partnerType = matchedData.PARTNER_TYPE;
-
-					// Query the 'partner' collection based on the PARTNER_TYPE
-					const partnerQuery = query(
-						collection(db, "partner"),
-						where("PARTNER_TYPE", "==", partnerType),
+				if (response.data.data.success) {
+					const userTypeDataList = response.data.data.data;
+					const matchedData = userTypeDataList.find(
+						(item) => item.PARTNER_TYPE,
 					);
-					const partnerSnapshot = await getDocs(partnerQuery);
 
-					if (!partnerSnapshot.empty) {
-						// Assuming you want to use only the first matching document
-						const partnerDocData = partnerSnapshot.docs[0].data();
+					if (matchedData) {
+						setleadsData(matchedData);
 
-						setpartnerData(partnerDocData);
+						const partnerType = matchedData.PARTNER_TYPE;
+
+						const partnerQuery = query(
+							collection(db, "partner"),
+							where("PARTNER_TYPE", "==", partnerType),
+						);
+						const partnerSnapshot = await getDocs(partnerQuery);
+
+						if (!partnerSnapshot.empty) {
+							const partnerDocData = partnerSnapshot.docs[0].data();
+							setpartnerData(partnerDocData);
+						} else {
+							toast.warn("No partner data found for this PARTNER_TYPE.");
+						}
 					} else {
-						console.log("No partner data found for this PARTNER_TYPE.");
+						toast.warn("No matching data found.");
 					}
 				} else {
-					console.log("No matching data found.");
+					toast.error(`Error from Zoho CRM: ${response.data.error.message}`);
 				}
 			} else {
-				console.log("No such document!");
+				toast.warn("No such user document found!");
 			}
 			setLoading(false);
 		} catch (error) {
 			console.error("Error fetching user data: ", error);
-			toast.error("Unable to get Zoho Data");
+			if (error.response?.data?.error) {
+				toast.error(`Error: ${error.response.data.error}`);
+			} else {
+				toast.error("Unable to get Zoho Data.");
+			}
 			setLoading(false);
 		}
 	};

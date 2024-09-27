@@ -85,10 +85,29 @@ router.post("/zoho", async (req, res) => {
 				},
 			},
 		);
-		res.json(response.data);
+
+		if (response.status !== 200) {
+			console.error("Error from Zoho CRM:", response.data);
+
+			return res.status(200).json({
+				success: false,
+				message: "Error from Zoho CRM",
+				error: response.data,
+			});
+		}
+
+		res.status(200).json({
+			success: true,
+			data: response.data,
+		});
 	} catch (error) {
-		console.error("Error fetching data from Zoho CRM:", error);
-		res.status(500).send("Error fetching data from Zoho CRM");
+		console.error("Error fetching data from Zoho CRM:", error.message);
+
+		res.status(500).json({
+			success: false,
+			message: "Error fetching data from Zoho CRM",
+			error: error.message,
+		});
 	}
 });
 
@@ -106,10 +125,29 @@ router.post("/agentData", async (req, res) => {
 				},
 			},
 		);
-		res.json(response.data);
+
+		if (response.status !== 200) {
+			console.error("Error from Zoho CRM:", response.data);
+
+			return res.status(200).json({
+				success: false,
+				message: "Error from Zoho CRM",
+				error: response.data,
+			});
+		}
+
+		res.status(200).json({
+			success: true,
+			data: response.data,
+		});
 	} catch (error) {
-		console.error("Error fetching agent data from Zoho CRM:", error);
-		res.status(500).send("Error fetching agent data from Zoho CRM");
+		console.error("Error fetching agent data from Zoho CRM:", error.message);
+
+		res.status(500).json({
+			success: false,
+			message: "Error fetching agent data from Zoho CRM",
+			error: error.message,
+		});
 	}
 });
 
@@ -120,7 +158,7 @@ router.post("/pmData", async (req, res) => {
 		const response = await axios.post(
 			"https://www.zohoapis.com/crm/v6/coql",
 			{
-				select_query: `select id, Full_Name , Proof_of_Renters_Insurance, Proof_of_Gas, Proof_of_Electric, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
+				select_query: `select id, Full_Name ,Proof_of_Renters_Insurance, Proof_of_Gas, Proof_of_Electric, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
 			},
 			{
 				headers: {
@@ -129,11 +167,28 @@ router.post("/pmData", async (req, res) => {
 			},
 		);
 
-		res.json(response.data);
+		if (response.status !== 200) {
+			console.error("Error from Zoho CRM:", response.data);
+
+			return res.status(200).json({
+				success: false,
+				message: "Error from Zoho CRM",
+				error: response.data,
+			});
+		}
+
+		res.status(200).json({
+			success: true,
+			data: response.data,
+		});
 	} catch (error) {
 		console.error("Error fetching PM data from Zoho CRM:", error.message);
 
-		res.status(500).send("Error fetching PM data from Zoho CRM");
+		res.status(500).json({
+			success: false,
+			message: "Error fetching PM data from Zoho CRM",
+			error: error.message,
+		});
 	}
 });
 

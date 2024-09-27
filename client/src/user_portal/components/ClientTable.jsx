@@ -134,58 +134,84 @@ const ClientTable = () => {
 		try {
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
-			if (dataDoc) {
+
+			if (dataDoc.exists()) {
 				const userDataDB = dataDoc.data();
-
-				const response = await axios.post(
-					"https://kevin-project-zfc8.onrender.com/api/zoho",
-					{ email: userDataDB.email },
-				);
-
-				const userTypeDataList = response.data.data;
-
 				let leadsData = null;
-				for (let userTypeData of userTypeDataList) {
-					if (userTypeData.LEAD_Source1) {
-						console.log("Lead Source: ", userTypeData.LEAD_Source1);
-						const pmResponse = await axios.post(
-							"https://kevin-project-zfc8.onrender.com/api/pmData",
-							{ LEAD_Source1: userTypeData.LEAD_Source1 },
-						);
-						const responsePMData = pmResponse.data.data;
-						console.log("PM Data: ", responsePMData);
-						leadsData = responsePMData;
-						break;
+
+				try {
+					// Fetch initial Zoho data
+					const response = await axios.post(
+						"https://kevin-project-zfc8.onrender.com/api/zoho",
+						{ email: userDataDB.email },
+					);
+					const userTypeDataList = response.data.data.data;
+					console.log("api/zoho", response, userTypeDataList);
+
+					for (let userTypeData of userTypeDataList) {
+						if (userTypeData.LEAD_Source1) {
+							try {
+								const pmResponse = await axios.post(
+									"https://kevin-project-zfc8.onrender.com/api/pmData",
+									{ LEAD_Source1: userTypeData.LEAD_Source1 },
+								);
+								leadsData = pmResponse.data.data.data;
+								console.log("api/pmdat", pmResponse, leadsData);
+								break;
+							} catch (pmError) {
+								console.error("Error fetching PM data: ", pmError);
+								toast.error(
+									"Failed to retrieve PM data. Please try again later.",
+								);
+								setLoading(false);
+								return;
+							}
+						}
+
+						if (userTypeData.AGENT_RF_CODE) {
+							try {
+								const agentResponse = await axios.post(
+									"https://kevin-project-zfc8.onrender.com/api/agentData",
+									{ AGENT_RF_CODE: userTypeData.AGENT_RF_CODE },
+								);
+								console.log("api/agentdata", agentResponse, leadsData);
+								leadsData = agentResponse.data.data.data;
+								break;
+							} catch (agentError) {
+								console.error("Error fetching agent data: ", agentError);
+								toast.error(
+									"Failed to retrieve agent data. Please try again later.",
+								);
+								setLoading(false);
+								return;
+							}
+						}
 					}
 
-					if (userTypeData.AGENT_RF_CODE) {
-						const agentResponse = await axios.post(
-							"https://kevin-project-zfc8.onrender.com/api/agentData",
-							{ AGENT_RF_CODE: userTypeData.AGENT_RF_CODE },
-						);
-						const responseAgentsData = agentResponse.data.data;
-
-						leadsData = responseAgentsData;
-						break;
+					if (leadsData) {
+						setLeadsData(leadsData);
+					} else {
+						console.log("No matching leads data found.");
+						toast.warning("No matching leads data found.");
+					}
+				} catch (zohoError) {
+					console.error("Error fetching Zoho data: ", zohoError);
+					if (zohoError.response && zohoError.response.status === 401) {
+						toast.error("Unauthorized access. Please check your API token.");
+					} else {
+						toast.error("Failed to fetch Zoho data. Please try again.");
 					}
 				}
-
-				if (leadsData) {
-					setLeadsData(leadsData);
-				} else {
-					console.log("No matching leads data found.");
-				}
-
-				setLoading(false);
 			} else {
 				console.log("No such document!");
-				setLoading(false);
+				toast.error("User document not found.");
 			}
 		} catch (error) {
-			setLoading(false);
 			console.error("Error fetching user data: ", error);
-			toast.error("No authorized Token");
+			toast.error("Error retrieving user data. Please try again.");
 		}
+
+		setLoading(false);
 	};
 
 	const nextPage = () => {
@@ -320,7 +346,7 @@ const ClientTable = () => {
 						onClick={showFilters}
 						className="flex flex-row justify-end items-center gap-3 font-semibold text-base text-white cursor-pointer"
 					>
-						<button> Filter </button>
+						<button> FILTER </button>
 						<TuneIcon />
 					</div>
 				</div>
