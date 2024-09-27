@@ -345,7 +345,7 @@ const ClientTable = () => {
 						onClick={showFilters}
 						className="flex flex-row justify-end items-center gap-3 font-semibold text-base text-white cursor-pointer"
 					>
-						<button> FILTER </button>
+						<button> Filter </button>
 						<TuneIcon />
 					</div>
 				</div>
