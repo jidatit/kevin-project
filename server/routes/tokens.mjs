@@ -158,7 +158,7 @@ router.post("/pmData", async (req, res) => {
 		const response = await axios.post(
 			"https://www.zohoapis.com/crm/v6/coql",
 			{
-				select_query: `select id, Full_Name ,Proof_of_Renters_Insurance, Proof_of_Gas, Proof_of_Electric, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
+				select_query: `select id, Full_Name , Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
 			},
 			{
 				headers: {
