@@ -152,8 +152,8 @@ const ClientTable = () => {
 
 			// Assuming response.data.data.data is an array
 			const userTypeDataList = response.data.data.data;
-			console.log("api/zoho response:", response);
-			console.log("User Type Data List:", userTypeDataList);
+			// console.log("api/zoho response:", response);
+			// console.log("User Type Data List:", userTypeDataList);
 
 			// Function to fetch PM or agent data based on the response structure
 			const fetchLeadData = async (leadSource, leadCode) => {
@@ -164,7 +164,7 @@ const ClientTable = () => {
 						`https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
 						{ [leadSource]: leadCode },
 					);
-					console.log(`api/${endpoint} response:`, leadResponse);
+					// console.log(`api/${endpoint} response:`, leadResponse);
 
 					// Check response structure
 					if (leadResponse.data.success) {
@@ -192,9 +192,9 @@ const ClientTable = () => {
 				const agentRFCode = userTypeData.AGENT_RF_CODE;
 
 				// Log the values to debug
-				console.log("Checking User Type Data:", userTypeData);
-				console.log("LEAD_Source1:", leadSource1);
-				console.log("AGENT_RF_CODE:", agentRFCode);
+				// console.log("Checking User Type Data:", userTypeData);
+				// console.log("LEAD_Source1:", leadSource1);
+				// console.log("AGENT_RF_CODE:", agentRFCode);
 
 				// Check for LEAD_Source1
 				if (leadSource1) {

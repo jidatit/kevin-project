@@ -48,7 +48,7 @@ const Dashboard = () => {
 			const dataDoc = await getDoc(userRef);
 			if (dataDoc.exists()) {
 				const userDataDB = dataDoc.data();
-				console.log("UserData: ", userDataDB);
+				// console.log("UserData: ", userDataDB);
 
 				const response = await axios.post(
 					"https://kevin-project-zfc8.onrender.com/api/zoho",
@@ -57,10 +57,10 @@ const Dashboard = () => {
 					},
 				);
 				const userTypeDataList = response.data.data.data;
-				console.log("api zoho response", response, userTypeDataList);
+				// console.log("api zoho response", response, userTypeDataList);
 
 				const matchedData = userTypeDataList.find((item) => item.PARTNER_TYPE);
-				console.log("matched data", matchedData);
+				// console.log("matched data", matchedData);
 				if (matchedData) {
 					setleadsData(matchedData);
 
@@ -73,12 +73,12 @@ const Dashboard = () => {
 						where("PARTNER_TYPE", "==", partnerType),
 					);
 					const partnerSnapshot = await getDocs(partnerQuery);
-					console.log("partner snapshot", partnerSnapshot);
+					// console.log("partner snapshot", partnerSnapshot);
 
 					if (!partnerSnapshot.empty) {
 						// Assuming you want to use only the first matching document
 						const partnerDocData = partnerSnapshot.docs[0].data();
-						console.log("partner data", partnerDocData);
+						// console.log("partner data", partnerDocData);
 						setpartnerData(partnerDocData);
 					} else {
 						console.log("No partner data found for this PARTNER_TYPE.");
