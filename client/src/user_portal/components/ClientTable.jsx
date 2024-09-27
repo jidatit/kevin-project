@@ -134,58 +134,81 @@ const ClientTable = () => {
 		try {
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
-			if (dataDoc) {
+
+			if (dataDoc.exists()) {
 				const userDataDB = dataDoc.data();
-
-				const response = await axios.post(
-					"https://kevin-project-zfc8.onrender.com/api/zoho",
-					{ email: userDataDB.email },
-				);
-
-				const userTypeDataList = response.data.data;
-
 				let leadsData = null;
-				for (let userTypeData of userTypeDataList) {
-					if (userTypeData.LEAD_Source1) {
-						console.log("Lead Source: ", userTypeData.LEAD_Source1);
-						const pmResponse = await axios.post(
-							"https://kevin-project-zfc8.onrender.com/api/pmData",
-							{ LEAD_Source1: userTypeData.LEAD_Source1 },
-						);
-						const responsePMData = pmResponse.data.data;
-						console.log("PM Data: ", responsePMData);
-						leadsData = responsePMData;
-						break;
+
+				try {
+					// Fetch initial Zoho data
+					const response = await axios.post(
+						"https://kevin-project-zfc8.onrender.com/api/zoho",
+						{ email: userDataDB.email },
+					);
+					const userTypeDataList = response.data.data;
+
+					for (let userTypeData of userTypeDataList) {
+						if (userTypeData.LEAD_Source1) {
+							try {
+								const pmResponse = await axios.post(
+									"https://kevin-project-zfc8.onrender.com/api/pmData",
+									{ LEAD_Source1: userTypeData.LEAD_Source1 },
+								);
+								leadsData = pmResponse.data.data;
+								break;
+							} catch (pmError) {
+								console.error("Error fetching PM data: ", pmError);
+								toast.error(
+									"Failed to retrieve PM data. Please try again later.",
+								);
+								setLoading(false);
+								return;
+							}
+						}
+
+						if (userTypeData.AGENT_RF_CODE) {
+							try {
+								const agentResponse = await axios.post(
+									"https://kevin-project-zfc8.onrender.com/api/agentData",
+									{ AGENT_RF_CODE: userTypeData.AGENT_RF_CODE },
+								);
+								leadsData = agentResponse.data.data;
+								break;
+							} catch (agentError) {
+								console.error("Error fetching agent data: ", agentError);
+								toast.error(
+									"Failed to retrieve agent data. Please try again later.",
+								);
+								setLoading(false);
+								return;
+							}
+						}
 					}
 
-					if (userTypeData.AGENT_RF_CODE) {
-						const agentResponse = await axios.post(
-							"https://kevin-project-zfc8.onrender.com/api/agentData",
-							{ AGENT_RF_CODE: userTypeData.AGENT_RF_CODE },
-						);
-						const responseAgentsData = agentResponse.data.data;
-
-						leadsData = responseAgentsData;
-						break;
+					if (leadsData) {
+						setLeadsData(leadsData);
+					} else {
+						console.log("No matching leads data found.");
+						toast.warning("No matching leads data found.");
+					}
+				} catch (zohoError) {
+					console.error("Error fetching Zoho data: ", zohoError);
+					if (zohoError.response && zohoError.response.status === 401) {
+						toast.error("Unauthorized access. Please check your API token.");
+					} else {
+						toast.error("Failed to fetch Zoho data. Please try again.");
 					}
 				}
-
-				if (leadsData) {
-					setLeadsData(leadsData);
-				} else {
-					console.log("No matching leads data found.");
-				}
-
-				setLoading(false);
 			} else {
 				console.log("No such document!");
-				setLoading(false);
+				toast.error("User document not found.");
 			}
 		} catch (error) {
-			setLoading(false);
 			console.error("Error fetching user data: ", error);
-			toast.error("No authorized Token");
+			toast.error("Error retrieving user data. Please try again.");
 		}
+
+		setLoading(false);
 	};
 
 	const nextPage = () => {
@@ -515,7 +538,7 @@ const ClientTable = () => {
 													View Details
 												</button>
 											</td>
-											<td
+											{/* <td
 												className={`py-2 px-3 text-base font-normal ${
 													index === 0
 														? "border-t-2 border-gray-300"
@@ -530,7 +553,7 @@ const ClientTable = () => {
 												>
 													View Image
 												</button>
-											</td>
+											</td> */}
 
 											<td
 												className={`py-2 px-3 text-base  font-normal ${
@@ -768,6 +791,79 @@ const ClientTable = () => {
 									<img src="https://www.tailwindtap.com/assets/travelagency-admin/rightarrow.svg" />
 								</li>
 							</ul>
+						</div>
+					</div>
+
+					<div className="w-full flex flex-col justify-start items-start mt-7">
+						<div className="w-full mt-5">
+							<h3 className="text-lg font-semibold text-gray-700">
+								Proof of Documents
+							</h3>
+							<div className="flex flex-col mt-3 space-y-3">
+								{leadsData?.length > 0 ? (
+									leadsData.map((lead, index) => (
+										<div
+											key={index}
+											className="bg-gray-100 p-4 rounded-lg shadow"
+										>
+											<h4 className="font-bold text-[#6DB23A]">
+												Lead #{index + 1}
+											</h4>
+
+											{lead.Proof_of_Renters_Insurance?.length > 0 && (
+												<div className="mt-2">
+													<h5 className="font-semibold">
+														Proof of Renters Insurance
+													</h5>
+													{lead.Proof_of_Renters_Insurance.map(
+														(proof, proofIndex) => (
+															<a
+																key={proofIndex}
+																href={proof} // URL to the PDF
+																className="text-blue-600 underline block"
+																target="_blank"
+																rel="noopener noreferrer"
+															>
+																View PDF {proofIndex + 1}
+															</a>
+														),
+													)}
+												</div>
+											)}
+
+											{lead.Proof_of_Gas?.length > 0 && (
+												<div className="mt-2">
+													<h5 className="font-semibold">Proof of Gas</h5>
+													{lead.Proof_of_Gas.map((proof, proofIndex) => (
+														<img
+															key={proofIndex}
+															src={proof} // URL to the PNG
+															alt={`Proof of Gas ${proofIndex + 1}`}
+															className="w-full h-auto rounded-md mb-2"
+														/>
+													))}
+												</div>
+											)}
+
+											{lead.Proof_of_Electric?.length > 0 && (
+												<div className="mt-2">
+													<h5 className="font-semibold">Proof of Electric</h5>
+													{lead.Proof_of_Electric.map((proof, proofIndex) => (
+														<img
+															key={proofIndex}
+															src={proof} // URL to the PNG
+															alt={`Proof of Electric ${proofIndex + 1}`}
+															className="w-full h-auto rounded-md mb-2"
+														/>
+													))}
+												</div>
+											)}
+										</div>
+									))
+								) : (
+									<span>No leads data available.</span>
+								)}
+							</div>
 						</div>
 					</div>
 

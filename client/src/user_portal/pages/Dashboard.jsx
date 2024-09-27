@@ -46,9 +46,9 @@ const Dashboard = () => {
 			setLoading(true);
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
+
 			if (dataDoc.exists()) {
 				const userDataDB = dataDoc.data();
-				console.log("UserData: ", userDataDB);
 
 				const response = await axios.post(
 					"https://kevin-project-zfc8.onrender.com/api/zoho",
@@ -56,41 +56,47 @@ const Dashboard = () => {
 						email: userDataDB.email,
 					},
 				);
-				const userTypeDataList = response.data.data;
 
-				const matchedData = userTypeDataList.find((item) => item.PARTNER_TYPE);
-
-				if (matchedData) {
-					setleadsData(matchedData);
-
-					// Retrieve the PARTNER_TYPE from the matchedData
-					const partnerType = matchedData.PARTNER_TYPE;
-
-					// Query the 'partner' collection based on the PARTNER_TYPE
-					const partnerQuery = query(
-						collection(db, "partner"),
-						where("PARTNER_TYPE", "==", partnerType),
+				if (response.data.success) {
+					const userTypeDataList = response.data.data;
+					const matchedData = userTypeDataList.find(
+						(item) => item.PARTNER_TYPE,
 					);
-					const partnerSnapshot = await getDocs(partnerQuery);
 
-					if (!partnerSnapshot.empty) {
-						// Assuming you want to use only the first matching document
-						const partnerDocData = partnerSnapshot.docs[0].data();
+					if (matchedData) {
+						setleadsData(matchedData);
 
-						setpartnerData(partnerDocData);
+						const partnerType = matchedData.PARTNER_TYPE;
+
+						const partnerQuery = query(
+							collection(db, "partner"),
+							where("PARTNER_TYPE", "==", partnerType),
+						);
+						const partnerSnapshot = await getDocs(partnerQuery);
+
+						if (!partnerSnapshot.empty) {
+							const partnerDocData = partnerSnapshot.docs[0].data();
+							setpartnerData(partnerDocData);
+						} else {
+							toast.warn("No partner data found for this PARTNER_TYPE.");
+						}
 					} else {
-						console.log("No partner data found for this PARTNER_TYPE.");
+						toast.warn("No matching data found.");
 					}
 				} else {
-					console.log("No matching data found.");
+					toast.error(`Error from Zoho CRM: ${response.data.error.message}`);
 				}
 			} else {
-				console.log("No such document!");
+				toast.warn("No such user document found!");
 			}
 			setLoading(false);
 		} catch (error) {
 			console.error("Error fetching user data: ", error);
-			toast.error("Unable to get Zoho Data");
+			if (error.response?.data?.error) {
+				toast.error(`Error: ${error.response.data.error}`);
+			} else {
+				toast.error("Unable to get Zoho Data.");
+			}
 			setLoading(false);
 		}
 	};
@@ -118,8 +124,6 @@ const Dashboard = () => {
 				<div className="w-full lg:w-[60%] flex flex-col justify-center items-center ">
 					<div className="w-full h-12 rounded-t-lg bg-[#6DB23A]"></div>
 					<div className="w-[95%] max-w-full h-96 max-h-[75vh] my-5 rounded-xl bg-gray-200 flex justify-center items-center">
-						{console.log("partner comp", partnerData)}
-
 						{partnerData?.quickLinkVideo && (
 							<iframe
 								className="rounded-xl w-full h-full"
@@ -150,7 +154,6 @@ const Dashboard = () => {
 								Click Here to Schedule a Call
 							</div>
 							<div className="flex flex-col  text-[#619f34] text-sm font-semibold cursor-pointer">
-								{console.log("link", partnerData?.quickLinkFirst)}
 								{partnerData?.quickLinkFirst ? (
 									<a
 										href={
@@ -227,6 +230,34 @@ const Dashboard = () => {
 									</h2>
 								) : (
 									<span>No Link Available</span>
+								)}
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div className=" w-full flex flex-col justify-start items-start mt-7">
+					<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">
+						{" "}
+						Contact My Account Executive{" "}
+					</div>
+
+					<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 px-4">
+						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 mt-3 bg-gray-200 rounded-xl">
+							<div className="text-lg text-[#6DB23A] font-bold">
+								Contact Number
+							</div>
+							<div className="text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer">
+								{partnerData?.quickLinkContact ? (
+									<Link
+										href={partnerData.quickLinkContact}
+										className="break-words"
+									>
+										{" "}
+										{partnerData.quickLinkContact}{" "}
+									</Link>
+								) : (
+									<span> No Number Available </span>
 								)}
 							</div>
 						</div>

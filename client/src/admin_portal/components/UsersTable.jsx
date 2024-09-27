@@ -66,7 +66,7 @@ const UsersTable = () => {
 	const handleOpenReferral = async (id) => {
 		setOpenReferral(true);
 		try {
-			const userRef = doc(db, "users", id);
+			const userRef = doc(db, "admins", id);
 			const updatedDoc = await getDoc(userRef);
 			const data = updatedDoc.data();
 			setFetchReferral(data.referralLink);

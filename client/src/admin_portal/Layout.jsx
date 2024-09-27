@@ -59,6 +59,30 @@ const Layout = () => {
 		}
 	}, [userID]);
 
+	useEffect(() => {
+		const fetchLogoUrl = async () => {
+			if (!userID) return; // Ensure userID exists
+
+			try {
+				const userRef = doc(db, "admins", userID);
+				const userDoc = await getDoc(userRef);
+
+				if (userDoc.exists()) {
+					const data = userDoc.data();
+					if (data.logoUrl) {
+						setLogoUrl(data.logoUrl); // Set the logo URL from Firestore
+					}
+				} else {
+					console.log("No admin data found for the user.");
+				}
+			} catch (error) {
+				console.error("Error fetching logo URL: ", error);
+			}
+		};
+
+		fetchLogoUrl();
+	}, [userID]);
+
 	const handleResize = useCallback(() => {
 		const isDesktop = window.innerWidth > 768;
 		setDisplayName(isDesktop);
@@ -110,7 +134,7 @@ const Layout = () => {
 			const downloadURL = await getDownloadURL(storageRef);
 			setLogoUrl(downloadURL);
 
-			const userRef = doc(db, "users", userID);
+			const userRef = doc(db, "admins", userID);
 			await setDoc(userRef, { logoUrl: downloadURL }, { merge: true });
 		} catch (error) {
 			console.error("Error uploading file: ", error);
@@ -120,7 +144,6 @@ const Layout = () => {
 	return currentUser && userType === "admin" ? (
 		<>
 			<div className="w-full flex flex-cols relative">
-				{/* Right Navbar */}
 				<div
 					id="logo-sidebar"
 					className={`w-64 min-h-screen absolute flex flex-col left-0 top-0 border-r-2 border-gray-300 transition-transform ${

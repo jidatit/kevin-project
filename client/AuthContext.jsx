@@ -14,19 +14,26 @@ export const AuthProvider = ({ children }) => {
 
 	const getUserDetails = async (userId) => {
 		try {
+			// Check if the user exists in the 'users' collection
 			const userDocRef = doc(db, "users", userId);
 			const userDocSnapshot = await getDoc(userDocRef);
+
 			if (userDocSnapshot.exists()) {
 				const userData = userDocSnapshot.data();
+
 				return userData;
 			} else {
+				// Check if the user exists in the 'admins' collection
 				const adminDocRef = doc(db, "admins", userId);
 				const adminDocSnapshot = await getDoc(adminDocRef);
+
 				if (adminDocSnapshot.exists()) {
 					const adminData = adminDocSnapshot.data();
+
 					return adminData;
 				} else {
-					console.log("No user or admin exists.");
+					console.log("No user or admin found with the given userId: ", userId);
+					return null;
 				}
 			}
 		} catch (error) {
