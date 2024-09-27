@@ -28,52 +28,45 @@ const Profile = () => {
 		}
 	};
 	const getLeadsData = async () => {
+		// setLoading(true);
+		// if (!userID) return;
+
 		try {
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
-
 			if (dataDoc.exists()) {
 				const userDataDB = dataDoc.data();
+				console.log("UserData: ", userDataDB);
 
-				try {
-					const response = await axios.post(
-						"https://kevin-project-zfc8.onrender.com/api/zoho",
-						{ email: userDataDB.email },
-					);
+				const response = await axios.post(
+					"https://kevin-project-zfc8.onrender.com/api/zoho",
+					{
+						email: userDataDB.email,
+					},
+				);
+				const userTypeDataList = response.data.data;
 
-					const userTypeDataList = response.data.data.data;
+				console.log("user data", userTypeDataList);
+				const matchedData = userTypeDataList.find(
+					(item) => item.Company_RF_LINK || item.RF_CAMPAIGN_NAME,
+				);
 
-					const matchedData = userTypeDataList.find(
-						(item) => item.Company_RF_LINK || item.RF_CAMPAIGN_NAME,
-					);
-
-					if (matchedData) {
-						setleadsData(matchedData);
-					} else {
-						toast.warning("No matching data found.");
-					}
-				} catch (zohoError) {
-					console.error("Error fetching data from Zoho: ", zohoError);
-					if (zohoError.response && zohoError.response.status === 401) {
-						toast.error(
-							"Unauthorized access to Zoho API. Please check credentials.",
-						);
-					} else if (zohoError.response && zohoError.response.status === 500) {
-						toast.error("Zoho API server error. Please try again later.");
-					} else {
-						toast.error("Error fetching data from Zoho. Please try again.");
-					}
+				if (matchedData) {
+					console.log("Matched Data: ", matchedData);
+					setleadsData(matchedData);
+					// Do something with matchedData
+				} else {
+					console.log("No matching data found.");
 				}
+
+				// setLoading(false);
 			} else {
-				console.log("No such document in Firestore!");
-				toast.error("User data not found.");
+				console.log("No such document!");
+				// setLoading(false);
 			}
-		} catch (firestoreError) {
-			console.error(
-				"Error fetching user data from Firestore: ",
-				firestoreError,
-			);
-			toast.error("Failed to retrieve user data. Please try again.");
+		} catch (error) {
+			// setLoading(false);
+			console.error("Error fetching user data: ", error);
 		}
 	};
 
