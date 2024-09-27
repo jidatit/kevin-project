@@ -806,7 +806,7 @@ const ClientTable = () => {
 						</div>
 					</div>
 
-					<div className="w-full flex flex-col justify-start items-start mt-7">
+					{/* <div className="w-full flex flex-col justify-start items-start mt-7">
 						<div className="w-full mt-5">
 							<h3 className="text-lg font-semibold text-gray-700">
 								Proof of Documents
@@ -877,7 +877,7 @@ const ClientTable = () => {
 								)}
 							</div>
 						</div>
-					</div>
+					</div> */}
 
 					<Modal
 						open={openFirst}
