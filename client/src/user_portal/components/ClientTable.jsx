@@ -135,83 +135,82 @@ const ClientTable = () => {
 			const userRef = doc(db, "users", userID);
 			const dataDoc = await getDoc(userRef);
 
-			if (dataDoc.exists()) {
-				const userDataDB = dataDoc.data();
-				let leadsData = null;
-
-				try {
-					// Fetch initial Zoho data
-					const response = await axios.post(
-						"https://kevin-project-zfc8.onrender.com/api/zoho",
-						{ email: userDataDB.email },
-					);
-					const userTypeDataList = response.data.data.data;
-					console.log("api/zoho", response, userTypeDataList);
-
-					for (let userTypeData of userTypeDataList) {
-						if (userTypeData.LEAD_Source1) {
-							try {
-								const pmResponse = await axios.post(
-									"https://kevin-project-zfc8.onrender.com/api/pmData",
-									{ LEAD_Source1: userTypeData.LEAD_Source1 },
-								);
-								leadsData = pmResponse.data.data.data;
-								console.log("api/pmdat", pmResponse, leadsData);
-								break;
-							} catch (pmError) {
-								console.error("Error fetching PM data: ", pmError);
-								toast.error(
-									"Failed to retrieve PM data. Please try again later.",
-								);
-								setLoading(false);
-								return;
-							}
-						}
-
-						if (userTypeData.AGENT_RF_CODE) {
-							try {
-								const agentResponse = await axios.post(
-									"https://kevin-project-zfc8.onrender.com/api/agentData",
-									{ AGENT_RF_CODE: userTypeData.AGENT_RF_CODE },
-								);
-								console.log("api/agentdata", agentResponse, leadsData);
-								leadsData = agentResponse.data.data.data;
-								break;
-							} catch (agentError) {
-								console.error("Error fetching agent data: ", agentError);
-								toast.error(
-									"Failed to retrieve agent data. Please try again later.",
-								);
-								setLoading(false);
-								return;
-							}
-						}
-					}
-
-					if (leadsData) {
-						setLeadsData(leadsData);
-					} else {
-						console.log("No matching leads data found.");
-						toast.warning("No matching leads data found.");
-					}
-				} catch (zohoError) {
-					console.error("Error fetching Zoho data: ", zohoError);
-					if (zohoError.response && zohoError.response.status === 401) {
-						toast.error("Unauthorized access. Please check your API token.");
-					} else {
-						toast.error("Failed to fetch Zoho data. Please try again.");
-					}
-				}
-			} else {
+			if (!dataDoc.exists()) {
 				console.log("No such document!");
 				toast.error("User document not found.");
+				setLoading(false);
+				return;
+			}
+
+			const userDataDB = dataDoc.data();
+
+			// Fetch initial Zoho data
+			const response = await axios.post(
+				"https://kevin-project-zfc8.onrender.com/api/zoho",
+				{ email: userDataDB.email },
+			);
+			const userTypeDataList = response.data.data.data;
+			console.log("api/zoho", response, userTypeDataList);
+
+			// Function to fetch PM or agent data based on the response structure
+			const fetchLeadData = async (leadSource) => {
+				const endpoint = leadSource === "LEAD_Source1" ? "pmData" : "agentData";
+				const leadCode =
+					leadSource === "LEAD_Source1"
+						? userTypeDataList.LEAD_Source1
+						: userTypeDataList.AGENT_RF_CODE;
+
+				try {
+					const leadResponse = await axios.post(
+						`https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
+						{ [leadSource]: leadCode },
+					);
+					console.log(`api/${endpoint}`, leadResponse);
+
+					// Check response structure
+					if (leadResponse.data.success) {
+						return leadResponse.data.data.data;
+					} else {
+						toast.error(
+							`Failed to retrieve ${leadSource.toLowerCase()} data: ${leadResponse.data.message}`,
+						);
+						return null; // Return null if the response indicates failure
+					}
+				} catch (error) {
+					console.error(`Error fetching ${leadSource} data: `, error);
+					toast.error(
+						`Failed to retrieve ${leadSource.toLowerCase()} data. Please try again later.`,
+					);
+					return null; // Return null in case of error
+				}
+			};
+
+			let leadsData = null;
+
+			// Iterate over userTypeDataList to find leads
+			for (let userTypeData of userTypeDataList) {
+				if (userTypeData.LEAD_Source1) {
+					leadsData = await fetchLeadData("LEAD_Source1");
+					if (leadsData) break; // Break if leadsData is found
+				}
+				if (userTypeData.AGENT_RF_CODE) {
+					leadsData = await fetchLeadData("AGENT_RF_CODE");
+					if (leadsData) break; // Break if leadsData is found
+				}
+			}
+
+			if (leadsData) {
+				setLeadsData(leadsData);
+			} else {
+				console.log("No matching leads data found.");
+				toast.warning("No matching leads data found.");
 			}
 		} catch (error) {
 			console.error("Error fetching user data: ", error);
 			toast.error("Error retrieving user data. Please try again.");
+		} finally {
+			setLoading(false); // Ensure loading is set to false in all cases
 		}
-
-		setLoading(false);
 	};
 
 	const nextPage = () => {
