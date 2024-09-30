@@ -185,22 +185,30 @@ router.post("/pmData", async (req, res) => {
     let leadsWithAttachments = response.data.data;
 
     if (leadsWithAttachments.length > 0) {
-      const batchSize = 5; // Process 5 leads at a time
-      const batches = [];
-
-      for (let i = 0; i < leadsWithAttachments.length; i += batchSize) {
-        batches.push(leadsWithAttachments.slice(i, i + batchSize));
-      }
-
-      const processedLeads = [];
-      for (const batch of batches) {
-        const batchResults = await processBatch(batch, access_token);
-        processedLeads.push(...batchResults);
-        // Add a delay between batches
-        await setTimeout(5000);
-      }
-
-      leadsWithAttachments = processedLeads;
+      leadsWithAttachments = await Promise.all(
+        leadsWithAttachments.map(async (lead) => {
+          try {
+            const leadRecordResponse = await fetchLeadRecord(
+              lead.id,
+              access_token
+            );
+            return {
+              ...lead,
+              fullLeadRecord: leadRecordResponse.leadRecord || {},
+            };
+          } catch (error) {
+            console.error(
+              `Error fetching lead record for lead ${lead.id}:`,
+              error.message
+            );
+            return {
+              ...lead,
+              fullLeadRecord: {},
+              error: error.message,
+            };
+          }
+        })
+      );
     }
 
     res.status(200).json({
@@ -325,32 +333,6 @@ async function fetchFileDetails(fileId, accessToken) {
     );
     throw error;
   }
-}
-
-async function processBatch(batch, access_token) {
-  const results = [];
-  for (const lead of batch) {
-    try {
-      const leadRecordResponse = await fetchLeadRecord(lead.id, access_token);
-      results.push({
-        ...lead,
-        fullLeadRecord: leadRecordResponse.leadRecord || {},
-      });
-    } catch (error) {
-      console.error(
-        `Error fetching lead record for lead ${lead.id}:`,
-        error.message
-      );
-      results.push({
-        ...lead,
-        fullLeadRecord: {},
-        error: error.message,
-      });
-    }
-    // Add a delay between each request
-    await setTimeout(1000); // 1 second delay
-  }
-  return results;
 }
 
 export async function refreshAccessToken() {

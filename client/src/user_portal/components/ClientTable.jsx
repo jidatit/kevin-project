@@ -226,6 +226,7 @@ const ClientTable = () => {
 
       if (leadsData) {
         setLeadsData(leadsData);
+        setFilteredLeadsData(leadsData);
       } else {
         console.log("No matching leads data found.");
         toast.warning("No matching leads data found.");
@@ -246,11 +247,15 @@ const ClientTable = () => {
     setCurrentPage(currentPage + 1);
   };
 
+  //   const changePage = (value) => {
+  //     const startIndex = value * rowPerPage;
+  //     const endIndex = startIndex + rowPerPage;
+  //     const newArray = filteredLeadsData.slice(startIndex, endIndex);
+  //     setRowsToShow(newArray);
+  //     setCurrentPage(value);
+  //   };
+
   const changePage = (value) => {
-    const startIndex = value * rowPerPage;
-    const endIndex = startIndex + rowPerPage;
-    const newArray = filteredLeadsData.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
     setCurrentPage(value);
   };
 
@@ -849,7 +854,7 @@ const ClientTable = () => {
               <div className="text-base text-center">
                 Showing
                 <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg">
-                  {currentPage === 0 ? 1 : currentPage * rowPerPage + 1}
+                  {currentPage === 1 ? 1 : currentPage * rowPerPage + 1}
                 </span>
                 to
                 <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
