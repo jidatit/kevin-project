@@ -231,7 +231,8 @@ async function fetchAttachments(leadId, accessToken) {
 				},
 			}
 		);
-		console.log("Full Attachment Response: ", JSON.stringify(response.data, null, 2));
+		console.log("Raw Response: ", response);
+		console.log("Full Attachment Response: ", JSON.stringify(response));
 		
 		if (!response.data || !Array.isArray(response.data.data)) {
 			console.log("Unexpected response structure:", response.data);
