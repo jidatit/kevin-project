@@ -83,7 +83,6 @@ const ClientTable = () => {
 
   const handleRowPerPageChange = (event) => {
     setRowPerPage(event.target.value);
-    setCurrentPage(0); // Reset to first page when changing rows per page
   };
 
   const [openFirst, setOpenFirst] = useState(false);
@@ -94,7 +93,9 @@ const ClientTable = () => {
   const handleCloseFirst = () => setOpenFirst(false);
 
   useEffect(() => {
-    getLeadsData(currentPage); // Pass current page to the function
+    if (currentPage > 0) {
+      getLeadsData(currentPage); // Pass current page to the function
+    }
   }, [currentPage]); // Fetch data whenever currentPage changes
 
   useEffect(() => {
@@ -107,8 +108,8 @@ const ClientTable = () => {
   }, [filteredLeadsData, currentPage, rowPerPage]);
 
   const totalPage = useMemo(
-    () => Math.ceil(filteredLeadsData.length / rowPerPage),
-    [filteredLeadsData.length, rowPerPage]
+    () => Math.ceil(leadsData.length / rowPerPage),
+    [leadsData.length, rowPerPage]
   );
 
   const generatePaginationLinks = () => {
@@ -267,7 +268,7 @@ const ClientTable = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     } else {
-      setCurrentPage(0);
+      setCurrentPage(1);
     }
   };
 
@@ -928,7 +929,7 @@ const ClientTable = () => {
                 >
                   <li
                     className={`prev-btn flex items-center justify-center w-9 h-9 rounded-md border ${
-                      currentPage == 0
+                      currentPage == 1
                         ? "bg-[#cccccc] pointer-events-none"
                         : " cursor-pointer border-[#E4E4EB]"
                     }`}
@@ -953,7 +954,7 @@ const ClientTable = () => {
 
                   <li
                     className={`flex items-center justify-center w-9 h-9 rounded-md border ${
-                      currentPage == totalPage - 1
+                      currentPage == 100 - 1
                         ? "bg-[#cccccc] pointer-events-none"
                         : " cursor-pointer border-[#E4E4EB]"
                     }`}
