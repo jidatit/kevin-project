@@ -231,7 +231,7 @@ async function fetchAttachments(leadId, accessToken) {
 				},
 			}
 		);
-		console.log("Attachment Response: ", response.data);
+		console.log("Attachment Response: ", response);
 		return response; // Return the full response data
 		
 	} catch (error) {
