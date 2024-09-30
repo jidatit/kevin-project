@@ -2,6 +2,7 @@ import express from "express";
 import axios from "axios";
 import { stringify } from "querystring";
 import cron from "node-cron";
+import { Buffer } from 'buffer';
 
 const router = express.Router();
 
@@ -187,7 +188,6 @@ router.post("/pmData", async (req, res) => {
 			try {
 				const leadRecordResponse = await fetchLeadRecord(firstLead.id, access_token);
 				debugInfo.leadRecordResponse = leadRecordResponse;
-				console.log("Lead Record Response : ", leadRecordResponse);
 				leadsWithAttachments[0] = {
 					...firstLead,
 					fullLeadRecord: leadRecordResponse.leadRecord || {},
@@ -222,46 +222,21 @@ router.post("/pmData", async (req, res) => {
 	}
 });
 
-async function fetchFileDetails(fileId, accessToken) {
-	console.log("fileId : ", fileId);
-	try {
-		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/files?id=${fileId}`,
-			{
-				headers: {
-					Authorization: `Zoho-oauthtoken ${accessToken}`,
-				},
-			}
-		);
-		
-		// Log the entire response
-		console.log("Full Response:", response);
-		
-		// Log the response data
-		console.log("Response Data:", JSON.stringify(response.data, null, 2));
-		
-		
-		
-		// Get the file name from the Content-Disposition header
-		const contentDisposition = response.headers['content-disposition'] || "";
-		const fileName = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'unknown' || "";
-		
-		return {
-			fileName: fileName,
-			fileSize: response.headers['content-length'],
-			fileType: response.headers['content-type'],
-			responseData: response.data  // This will be the actual response data, not binary
-		};
-	} catch (error) {
-		console.error("Error fetching file details:", error.response ? error.response.data : error.message);
-		throw error;
-	}
-}
-
 async function fetchLeadRecord(leadId, accessToken) {
 	try {
+		const fields = [
+			'Last_Name',
+			'Email',
+			'Record_Status__s',
+			'Converted__s',
+			'Converted_Date_Time',
+			'Proof_of_Gas',
+			'Proof_of_Renters_Insurance',
+			'Proof_of_Electric'
+		].join(',');
+
 		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/Leads/${leadId}`,
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}?fields=${fields}`,
 			{
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
@@ -275,16 +250,15 @@ async function fetchLeadRecord(leadId, accessToken) {
 		}
 
 		const leadRecord = response.data.data[0];
-		console.log("Lead Record:", JSON.stringify(leadRecord, null, 2));
 
-		// Fetch file details for Proof_of_Gas
-		if (leadRecord.Proof_of_Gas && leadRecord.Proof_of_Gas.length > 0) {
-			console.log("Proof of Gas : ", leadRecord.Proof_of_Gas);
-			const gasProofFileId = leadRecord.Proof_of_Gas[0].File_Id__s;
-			console.log("gasProofFileId : ", gasProofFileId);
-			const fileDetails = await fetchFileDetails(gasProofFileId, accessToken);
-			console.log("File Details : ", fileDetails);
-			leadRecord.Proof_of_Gas[0].fileDetails = fileDetails;
+		// Fetch file details for each proof document
+		const proofFields = ['Proof_of_Gas', 'Proof_of_Renters_Insurance', 'Proof_of_Electric'];
+		for (const field of proofFields) {
+			if (leadRecord[field] && leadRecord[field].length > 0) {
+				const fileId = leadRecord[field][0].File_Id__s;
+				const fileDetails = await fetchFileDetails(fileId, accessToken);
+				leadRecord[field][0].fileDetails = fileDetails;
+			}
 		}
 
 		return {
@@ -293,6 +267,41 @@ async function fetchLeadRecord(leadId, accessToken) {
 		};
 	} catch (error) {
 		console.error("Error fetching lead record:", error.response ? error.response.data : error.message);
+		throw error;
+	}
+}
+
+async function fetchFileDetails(fileId, accessToken) {
+	console.log("fileId : ", fileId);
+	try {
+		const response = await axios.get(
+			`https://www.zohoapis.com/crm/v6/files?id=${fileId}`,
+			{
+				headers: {
+					Authorization: `Zoho-oauthtoken ${accessToken}`,
+				},
+				responseType: 'arraybuffer'  
+			}
+		);
+		
+		// Log the response headers
+		console.log("File Details Response Headers:", response.headers);
+		
+		// Get the file name from the Content-Disposition header
+		const contentDisposition = response.headers['content-disposition'] || "";
+		const fileName = contentDisposition.split('filename=')[1]?.replace(/"/g, '') || 'unknown';
+		
+		// Convert binary data to Base64
+		const base64Data = Buffer.from(response.data).toString('base64');
+		
+		return {
+			fileName: fileName,
+			fileSize: response.headers['content-length'],
+			fileType: response.headers['content-type'],
+			fileData: base64Data  
+		};
+	} catch (error) {
+		console.error("Error fetching file details:", error.response ? error.response.data : error.message);
 		throw error;
 	}
 }
