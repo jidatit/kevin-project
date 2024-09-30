@@ -223,6 +223,7 @@ router.post("/pmData", async (req, res) => {
 });
 
 async function fetchFileDetails(fileId, accessToken) {
+	console.log("fileId : ", fileId);
 	try {
 		const response = await axios.get(
 			`https://www.zohoapis.com/crm/v6/files?id=${fileId}`,
@@ -264,7 +265,6 @@ async function fetchLeadRecord(leadId, accessToken) {
 				},
 			}
 		);
-		console.log("Full Lead Record Response: ", JSON.stringify(response.data, null, 2));
 		
 		if (!response.data || !response.data.data || !Array.isArray(response.data.data) || response.data.data.length === 0) {
 			console.log("Unexpected response structure:", response.data);
@@ -276,7 +276,9 @@ async function fetchLeadRecord(leadId, accessToken) {
 
 		// Fetch file details for Proof_of_Gas
 		if (leadRecord.Proof_of_Gas && leadRecord.Proof_of_Gas.length > 0) {
+			console.log("Proof of Gas : ", leadRecord.Proof_of_Gas);
 			const gasProofFileId = leadRecord.Proof_of_Gas[0].File_Id__s;
+			console.log("gasProofFileId : ", gasProofFileId);
 			const fileDetails = await fetchFileDetails(gasProofFileId, accessToken);
 			console.log("File Details : ", fileDetails);
 			leadRecord.Proof_of_Gas[0].fileDetails = fileDetails;
