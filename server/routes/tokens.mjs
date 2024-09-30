@@ -3,6 +3,7 @@ import axios from "axios";
 import { stringify } from "querystring";
 import cron from "node-cron";
 import { Buffer } from "buffer";
+import { setTimeout } from "timers/promises";
 
 const router = express.Router();
 
@@ -35,11 +36,9 @@ router.post("/accessAndRefreshToken", async (req, res) => {
       }
     );
 
-    console.log("Response Data: ", response.data);
     access_token = response.data.access_token;
     refresh_token = response.data.refresh_token;
-    console.log("Access Token : ", access_token);
-    console.log("Refresh Token : ", refresh_token);
+
     res.json(response.data);
 
     scheduleTokenRefresh();
@@ -181,30 +180,22 @@ router.post("/pmData", async (req, res) => {
     let leadsWithAttachments = response.data.data;
 
     if (leadsWithAttachments.length > 0) {
-      leadsWithAttachments = await Promise.all(
-        leadsWithAttachments.map(async (lead) => {
-          try {
-            const leadRecordResponse = await fetchLeadRecord(
-              lead.id,
-              access_token
-            );
-            return {
-              ...lead,
-              fullLeadRecord: leadRecordResponse.leadRecord || {},
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching lead record for lead ${lead.id}:`,
-              error.message
-            );
-            return {
-              ...lead,
-              fullLeadRecord: {},
-              error: error.message,
-            };
-          }
-        })
-      );
+      const batchSize = 5;
+      const batches = [];
+
+      for (let i = 0; i < leadsWithAttachments.length; i += batchSize) {
+        batches.push(leadsWithAttachments.slice(i, i + batchSize));
+      }
+
+      const processedLeads = [];
+      for (const batch of batches) {
+        const batchResults = await processBatch(batch, access_token);
+        processedLeads.push(...batchResults);
+        // Add a delay between batches
+        await setTimeout(5000); // 5 seconds delay between batches
+      }
+
+      leadsWithAttachments = processedLeads;
     }
 
     res.status(200).json({
@@ -282,7 +273,6 @@ async function fetchLeadRecord(leadId, accessToken) {
 }
 
 async function fetchFileDetails(fileId, accessToken) {
-  console.log("fileId : ", fileId);
   try {
     const response = await axios.get(
       `https://www.zohoapis.com/crm/v6/files?id=${fileId}`,
@@ -295,7 +285,6 @@ async function fetchFileDetails(fileId, accessToken) {
     );
 
     // Log the response headers
-    console.log("File Details Response Headers:", response.headers);
 
     // Get the file name from the Content-Disposition header
     const contentDisposition = response.headers["content-disposition"] || "";
@@ -331,6 +320,32 @@ async function fetchFileDetails(fileId, accessToken) {
   }
 }
 
+async function processBatch(batch, access_token) {
+  const results = [];
+  for (const lead of batch) {
+    try {
+      const leadRecordResponse = await fetchLeadRecord(lead.id, access_token);
+      results.push({
+        ...lead,
+        fullLeadRecord: leadRecordResponse.leadRecord || {},
+      });
+    } catch (error) {
+      console.error(
+        `Error fetching lead record for lead ${lead.id}:`,
+        error.message
+      );
+      results.push({
+        ...lead,
+        fullLeadRecord: {},
+        error: error.message,
+      });
+    }
+    // Add a delay between each request
+    await setTimeout(1000); // 1 second delay
+  }
+  return results;
+}
+
 export async function refreshAccessToken() {
   try {
     const response = await axios.post(
@@ -348,9 +363,8 @@ export async function refreshAccessToken() {
       }
     );
 
-    console.log("Refresh Response Data: ", response.data);
     access_token = response.data.access_token;
-    console.log("New Access Token : ", access_token);
+
     return response;
   } catch (error) {
     console.error("Error refreshing access token:", error);
