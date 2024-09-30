@@ -177,9 +177,27 @@ router.post("/pmData", async (req, res) => {
 			});
 		}
 
+		// Fetch attachments for each lead
+		const leadsWithAttachments = await Promise.all(
+			response.data.data.map(async (lead) => {
+				const attachments = await fetchAttachments(lead.id, access_token);
+				return {
+					...lead,
+					attachments: {
+						Proof_of_Gas: attachments.find(a => a.File_Name.startsWith('Proof_of_Gas')) || null,
+						Proof_of_Renters_Insurance: attachments.find(a => a.File_Name.startsWith('Proof_of_Renters_Insurance')) || null,
+						Proof_of_Electric: attachments.find(a => a.File_Name.startsWith('Proof_of_Electric')) || null,
+					},
+				};
+			})
+		);
+
 		res.status(200).json({
 			success: true,
-			data: response.data,
+			data: {
+				...response.data,
+				data: leadsWithAttachments,
+			},
 		});
 	} catch (error) {
 		console.error("Error fetching PM data from Zoho CRM:", error.message);
@@ -191,6 +209,23 @@ router.post("/pmData", async (req, res) => {
 		});
 	}
 });
+
+async function fetchAttachments(leadId, accessToken) {
+	try {
+		const response = await axios.get(
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=Proof_of_Gas,Proof_of_Renters_Insurance,Proof_of_Electric`,
+			{
+				headers: {
+					Authorization: `Zoho-oauthtoken ${accessToken}`,
+				},
+			}
+		);
+		return response.data.data;
+	} catch (error) {
+		console.error(`Error fetching attachments for lead ${leadId}:`, error.message);
+		return [];
+	}
+}
 
 export async function refreshAccessToken() {
 	try {
