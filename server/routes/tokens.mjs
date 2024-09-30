@@ -232,7 +232,7 @@ async function fetchAttachments(leadId, accessToken) {
 			}
 		);
 		console.log("Attachment Response: ", response.data);
-		return response.data; // Return the full response data
+		return response; // Return the full response data
 		
 	} catch (error) {
 		throw error; // Throw the error to be caught in the main function
