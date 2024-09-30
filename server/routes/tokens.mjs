@@ -231,23 +231,26 @@ async function fetchFileDetails(fileId, accessToken) {
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
 				},
-				responseType: 'arraybuffer'  // This is important for binary file data
 			}
 		);
 		
-		// Log the response headers
-		console.log("response : ", response.data);
-		console.log("File Details Response Headers:", response.headers);
+		// Log the entire response
+		console.log("Full Response:", response);
+		
+		// Log the response data
+		console.log("Response Data:", JSON.stringify(response.data, null, 2));
+		
+		
 		
 		// Get the file name from the Content-Disposition header
-		const contentDisposition = response.headers['content-disposition'];
-		const fileName = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'unknown';
+		const contentDisposition = response.headers['content-disposition'] || "";
+		const fileName = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'unknown' || "";
 		
 		return {
 			fileName: fileName,
 			fileSize: response.headers['content-length'],
 			fileType: response.headers['content-type'],
-			fileData: response.data  // This is the binary file data
+			responseData: response.data  // This will be the actual response data, not binary
 		};
 	} catch (error) {
 		console.error("Error fetching file details:", error.response ? error.response.data : error.message);
