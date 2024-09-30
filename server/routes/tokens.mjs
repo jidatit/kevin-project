@@ -185,19 +185,20 @@ router.post("/pmData", async (req, res) => {
 			debugInfo.firstLead = firstLead;
 			debugInfo.firstLeadId = firstLead.id;
 			try {
-				const attachmentResponse = await fetchAttachments(firstLead.id, access_token);
-				debugInfo.attachmentResponse = attachmentResponse;
+				const leadRecordResponse = await fetchLeadRecord(firstLead.id, access_token);
+				debugInfo.leadRecordResponse = leadRecordResponse;
+				console.log("Lead Record Response: ", JSON.stringify(leadRecordResponse, null, 2));
 				leadsWithAttachments[0] = {
 					...firstLead,
-					attachments: attachmentResponse.allAttachments || [],
+					fullLeadRecord: leadRecordResponse.leadRecord || {},
 				};
 			} catch (error) {
-				console.error(`Error fetching attachments for lead ${firstLead.id}:`, error.message);
-				debugInfo.attachmentError = error.message;
-				debugInfo.attachmentErrorStack = error.stack;
+				console.error(`Error fetching lead record for lead ${firstLead.id}:`, error.message);
+				debugInfo.leadRecordError = error.message;
+				debugInfo.leadRecordErrorStack = error.stack;
 				leadsWithAttachments[0] = {
 					...firstLead,
-					attachments: [],
+					fullLeadRecord: {},
 				};
 			}
 		}
@@ -221,33 +222,32 @@ router.post("/pmData", async (req, res) => {
 	}
 });
 
-async function fetchAttachments(leadId, accessToken) {
+async function fetchLeadRecord(leadId, accessToken) {
 	try {
 		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=id,Owner,File_Name,Created_Time,Parent_Id`,
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}`,
 			{
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
 				},
 			}
 		);
-		console.log("Raw Response: ", response);
-		console.log("Full Attachment Response: ", JSON.stringify(response));
+		console.log("Full Lead Record Response: ", JSON.stringify(response.data, null, 2));
 		
-		if (!response.data || !Array.isArray(response.data.data)) {
-			console.log("Unexpected response structure:", response.data);
-			return { data: [], allAttachments: [] };
-		}
+		// if (!response.data || !response.data.data || !Array.isArray(response.data.data) || response.data.data.length === 0) {
+		// 	console.log("Unexpected response structure:", response.data);
+		// 	return { data: {} };
+		// }
 
-		// Log all attachments
-		console.log("All Attachments:", JSON.stringify(response.data.data, null, 2));
+		// Log the lead record
+		console.log("Lead Record:", JSON.stringify(response.data.data[0], null, 2));
 
 		return {
 			...response.data,
-			allAttachments: response.data.data
+			leadRecord: response.data.data[0]
 		};
 	} catch (error) {
-		console.error("Error fetching attachments:", error.response ? error.response.data : error.message);
+		console.error("Error fetching lead record:", error.response ? error.response.data : error.message);
 		throw error;
 	}
 }
