@@ -36,9 +36,11 @@ router.post("/accessAndRefreshToken", async (req, res) => {
       }
     );
 
+    console.log("Response Data: ", response.data);
     access_token = response.data.access_token;
     refresh_token = response.data.refresh_token;
-
+    console.log("Access Token : ", access_token);
+    console.log("Refresh Token : ", refresh_token);
     res.json(response.data);
 
     scheduleTokenRefresh();
@@ -152,13 +154,16 @@ router.post("/agentData", async (req, res) => {
 });
 
 router.post("/pmData", async (req, res) => {
-  const { LEAD_Source1 } = req.body;
+  const { LEAD_Source1, page } = req.body;
 
   try {
     const response = await axios.post(
       "https://www.zohoapis.com/crm/v6/coql",
       {
-        select_query: `select id, Full_Name , Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
+        // Calculate offset based on the page number
+        select_query: `select id, Full_Name, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 10 offset ${
+          (page - 1) * 10
+        }`,
       },
       {
         headers: {
@@ -180,7 +185,7 @@ router.post("/pmData", async (req, res) => {
     let leadsWithAttachments = response.data.data;
 
     if (leadsWithAttachments.length > 0) {
-      const batchSize = 5;
+      const batchSize = 5; // Process 5 leads at a time
       const batches = [];
 
       for (let i = 0; i < leadsWithAttachments.length; i += batchSize) {
@@ -192,7 +197,7 @@ router.post("/pmData", async (req, res) => {
         const batchResults = await processBatch(batch, access_token);
         processedLeads.push(...batchResults);
         // Add a delay between batches
-        await setTimeout(5000); // 5 seconds delay between batches
+        await setTimeout(5000);
       }
 
       leadsWithAttachments = processedLeads;
@@ -273,6 +278,7 @@ async function fetchLeadRecord(leadId, accessToken) {
 }
 
 async function fetchFileDetails(fileId, accessToken) {
+  console.log("fileId : ", fileId);
   try {
     const response = await axios.get(
       `https://www.zohoapis.com/crm/v6/files?id=${fileId}`,
@@ -285,6 +291,7 @@ async function fetchFileDetails(fileId, accessToken) {
     );
 
     // Log the response headers
+    console.log("File Details Response Headers:", response.headers);
 
     // Get the file name from the Content-Disposition header
     const contentDisposition = response.headers["content-disposition"] || "";
@@ -363,8 +370,9 @@ export async function refreshAccessToken() {
       }
     );
 
+    console.log("Refresh Response Data: ", response.data);
     access_token = response.data.access_token;
-
+    console.log("New Access Token : ", access_token);
     return response;
   } catch (error) {
     console.error("Error refreshing access token:", error);

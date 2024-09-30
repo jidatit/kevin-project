@@ -62,7 +62,7 @@ const ClientTable = () => {
   const [showOrHideFilters, setShowOrHideFilters] = useState(false);
   const [rowPerPage, setRowPerPage] = useState(10);
   const [rowsToShow, setRowsToShow] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const theme = createTheme(); // You can customize this theme
@@ -83,6 +83,7 @@ const ClientTable = () => {
 
   const handleRowPerPageChange = (event) => {
     setRowPerPage(event.target.value);
+    setCurrentPage(0); // Reset to first page when changing rows per page
   };
 
   const [openFirst, setOpenFirst] = useState(false);
@@ -93,12 +94,17 @@ const ClientTable = () => {
   const handleCloseFirst = () => setOpenFirst(false);
 
   useEffect(() => {
-    getLeadsData();
-  }, []);
+    getLeadsData(currentPage); // Pass current page to the function
+  }, [currentPage]); // Fetch data whenever currentPage changes
 
   useEffect(() => {
-    setRowsToShow(filteredLeadsData.slice(0, rowPerPage));
-  }, [filteredLeadsData, rowPerPage]);
+    setRowsToShow(
+      filteredLeadsData.slice(
+        currentPage * rowPerPage,
+        (currentPage + 1) * rowPerPage
+      )
+    );
+  }, [filteredLeadsData, currentPage, rowPerPage]);
 
   const totalPage = useMemo(
     () => Math.ceil(filteredLeadsData.length / rowPerPage),
@@ -141,7 +147,7 @@ const ClientTable = () => {
     return paginationLinks;
   };
 
-  const getLeadsData = async () => {
+  const getLeadsData = async (page) => {
     setLoading(true);
     if (!userID) return;
 
@@ -170,13 +176,13 @@ const ClientTable = () => {
       // console.log("User Type Data List:", userTypeDataList);
 
       // Function to fetch PM or agent data based on the response structure
-      const fetchLeadData = async (leadSource, leadCode) => {
+      const fetchLeadData = async (leadSource, leadCode, page) => {
         const endpoint = leadSource === "LEAD_Source1" ? "pmData" : "agentData";
 
         try {
           const leadResponse = await axios.post(
             `https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
-            { [leadSource]: leadCode }
+            { [leadSource]: leadCode, page }
           );
           // console.log(`api/${endpoint} response:`, leadResponse);
 
@@ -207,21 +213,14 @@ const ClientTable = () => {
         const leadSource1 = userTypeData.LEAD_Source1;
         const agentRFCode = userTypeData.AGENT_RF_CODE;
 
-        // Log the values to debug
-        // console.log("Checking User Type Data:", userTypeData);
-        // console.log("LEAD_Source1:", leadSource1);
-        // console.log("AGENT_RF_CODE:", agentRFCode);
-
-        // Check for LEAD_Source1
         if (leadSource1) {
-          leadsData = await fetchLeadData("LEAD_Source1", leadSource1);
-          if (leadsData) break; // Break if leadsData is found
+          leadsData = await fetchLeadData("LEAD_Source1", leadSource1, page); // Pass page number
+          if (leadsData) break;
         }
 
-        // Check for AGENT_RF_CODE
         if (agentRFCode) {
-          leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode);
-          if (leadsData) break; // Break if leadsData is found
+          leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode, page); // Pass page number
+          if (leadsData) break;
         }
       }
 
