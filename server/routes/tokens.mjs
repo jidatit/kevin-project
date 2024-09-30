@@ -189,7 +189,7 @@ router.post("/pmData", async (req, res) => {
 				debugInfo.attachmentResponse = attachmentResponse;
 				leadsWithAttachments[0] = {
 					...firstLead,
-					attachments: attachmentResponse.filteredData || {},
+					attachments: attachmentResponse.allAttachments || [],
 				};
 			} catch (error) {
 				console.error(`Error fetching attachments for lead ${firstLead.id}:`, error.message);
@@ -197,7 +197,7 @@ router.post("/pmData", async (req, res) => {
 				debugInfo.attachmentErrorStack = error.stack;
 				leadsWithAttachments[0] = {
 					...firstLead,
-					attachments: {},
+					attachments: [],
 				};
 			}
 		}
@@ -231,23 +231,19 @@ async function fetchAttachments(leadId, accessToken) {
 				},
 			}
 		);
-		console.log("Attachment Response: ", response.data);
+		console.log("Full Attachment Response: ", JSON.stringify(response.data, null, 2));
 		
-		// Filter attachments for the specific file names we're interested in
-		const filteredAttachments = response.data.data.filter(attachment => 
-			['Proof_of_Gas', 'Proof_of_Electric', 'Proof_of_Renters_Insurance'].includes(attachment.File_Name)
-		);
-		
-		// Create an object with the filtered attachments
-		const attachmentObject = {
-			Proof_of_Gas: filteredAttachments.find(a => a.File_Name === 'Proof_of_Gas'),
-			Proof_of_Electric: filteredAttachments.find(a => a.File_Name === 'Proof_of_Electric'),
-			Proof_of_Renters_Insurance: filteredAttachments.find(a => a.File_Name === 'Proof_of_Renters_Insurance')
-		};
+		if (!response.data || !Array.isArray(response.data.data)) {
+			console.log("Unexpected response structure:", response.data);
+			return { data: [], allAttachments: [] };
+		}
+
+		// Log all attachments
+		console.log("All Attachments:", JSON.stringify(response.data.data, null, 2));
 
 		return {
 			...response.data,
-			filteredData: attachmentObject
+			allAttachments: response.data.data
 		};
 	} catch (error) {
 		console.error("Error fetching attachments:", error.response ? error.response.data : error.message);
