@@ -187,7 +187,7 @@ router.post("/pmData", async (req, res) => {
 			try {
 				const leadRecordResponse = await fetchLeadRecord(firstLead.id, access_token);
 				debugInfo.leadRecordResponse = leadRecordResponse;
-				console.log("Lead Record Response: ", JSON.stringify(leadRecordResponse, null, 2));
+				console.log("Lead Record Response : ", leadRecordResponse);
 				leadsWithAttachments[0] = {
 					...firstLead,
 					fullLeadRecord: leadRecordResponse.leadRecord || {},
@@ -222,6 +222,38 @@ router.post("/pmData", async (req, res) => {
 	}
 });
 
+async function fetchFileDetails(fileId, accessToken) {
+	try {
+		const response = await axios.get(
+			`https://www.zohoapis.com/crm/v6/files?id=${fileId}`,
+			{
+				headers: {
+					Authorization: `Zoho-oauthtoken ${accessToken}`,
+				},
+				responseType: 'arraybuffer'  // This is important for binary file data
+			}
+		);
+		
+		// Log the response headers
+		console.log("response : ", response.data);
+		console.log("File Details Response Headers:", response.headers);
+		
+		// Get the file name from the Content-Disposition header
+		const contentDisposition = response.headers['content-disposition'];
+		const fileName = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'unknown';
+		
+		return {
+			fileName: fileName,
+			fileSize: response.headers['content-length'],
+			fileType: response.headers['content-type'],
+			fileData: response.data  // This is the binary file data
+		};
+	} catch (error) {
+		console.error("Error fetching file details:", error.response ? error.response.data : error.message);
+		throw error;
+	}
+}
+
 async function fetchLeadRecord(leadId, accessToken) {
 	try {
 		const response = await axios.get(
@@ -234,17 +266,25 @@ async function fetchLeadRecord(leadId, accessToken) {
 		);
 		console.log("Full Lead Record Response: ", JSON.stringify(response.data, null, 2));
 		
-		// if (!response.data || !response.data.data || !Array.isArray(response.data.data) || response.data.data.length === 0) {
-		// 	console.log("Unexpected response structure:", response.data);
-		// 	return { data: {} };
-		// }
+		if (!response.data || !response.data.data || !Array.isArray(response.data.data) || response.data.data.length === 0) {
+			console.log("Unexpected response structure:", response.data);
+			return { data: {} };
+		}
 
-		// Log the lead record
-		console.log("Lead Record:", JSON.stringify(response.data.data[0], null, 2));
+		const leadRecord = response.data.data[0];
+		console.log("Lead Record:", JSON.stringify(leadRecord, null, 2));
+
+		// Fetch file details for Proof_of_Gas
+		if (leadRecord.Proof_of_Gas && leadRecord.Proof_of_Gas.length > 0) {
+			const gasProofFileId = leadRecord.Proof_of_Gas[0].File_Id__s;
+			const fileDetails = await fetchFileDetails(gasProofFileId, accessToken);
+			console.log("File Details : ", fileDetails);
+			leadRecord.Proof_of_Gas[0].fileDetails = fileDetails;
+		}
 
 		return {
 			...response.data,
-			leadRecord: response.data.data[0]
+			leadRecord: leadRecord
 		};
 	} catch (error) {
 		console.error("Error fetching lead record:", error.response ? error.response.data : error.message);
