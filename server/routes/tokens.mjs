@@ -177,20 +177,25 @@ router.post("/pmData", async (req, res) => {
 			});
 		}
 
-		// Fetch attachments for each lead
-		const leadsWithAttachments = await Promise.all(
-			response.data.data.map(async (lead) => {
-				const attachments = await fetchAttachments(lead.id, access_token);
-				return {
-					...lead,
-					attachments: {
-						Proof_of_Gas: attachments.find(a => a.File_Name.startsWith('Proof_of_Gas')) || null,
-						Proof_of_Renters_Insurance: attachments.find(a => a.File_Name.startsWith('Proof_of_Renters_Insurance')) || null,
-						Proof_of_Electric: attachments.find(a => a.File_Name.startsWith('Proof_of_Electric')) || null,
-					},
+		let leadsWithAttachments = response.data.data;
+
+		// Fetch attachments only for the first lead
+		if (leadsWithAttachments.length > 0) {
+			const firstLead = leadsWithAttachments[0];
+			try {
+				const attachments = await fetchAttachments(firstLead.id, access_token);
+				leadsWithAttachments[0] = {
+					...firstLead,
+					attachments: attachments,
 				};
-			})
-		);
+			} catch (error) {
+				console.error(`Error fetching attachments for lead ${firstLead.id}:`, error.message);
+				leadsWithAttachments[0] = {
+					...firstLead,
+					attachments: [],
+				};
+			}
+		}
 
 		res.status(200).json({
 			success: true,
@@ -213,17 +218,17 @@ router.post("/pmData", async (req, res) => {
 async function fetchAttachments(leadId, accessToken) {
 	try {
 		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=Proof_of_Gas,Proof_of_Renters_Insurance,Proof_of_Electric`,
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=Proof_of_Gas`,
 			{
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
 				},
 			}
 		);
-		return response.data.data;
+		return response.data.data || []; // Ensure we always return an array
 	} catch (error) {
 		console.error(`Error fetching attachments for lead ${leadId}:`, error.message);
-		return [];
+		return []; // Return an empty array in case of error
 	}
 }
 
