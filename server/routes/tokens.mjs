@@ -178,26 +178,26 @@ router.post("/pmData", async (req, res) => {
 		}
 
 		let leadsWithAttachments = response.data.data;
-		let debugInfo = {}; // Object to store debug information
-		
-		// Fetch attachments only for the first lead
+		let debugInfo = {};
+
 		if (leadsWithAttachments.length > 0) {
 			const firstLead = leadsWithAttachments[0];
 			debugInfo.firstLead = firstLead;
 			debugInfo.firstLeadId = firstLead.id;
 			try {
 				const attachmentResponse = await fetchAttachments(firstLead.id, access_token);
-				debugInfo.attachmentResponse = attachmentResponse; // Store the full attachment response
+				debugInfo.attachmentResponse = attachmentResponse;
 				leadsWithAttachments[0] = {
 					...firstLead,
-					attachments: attachmentResponse.data || [],
+					attachments: attachmentResponse.filteredData || {},
 				};
 			} catch (error) {
 				console.error(`Error fetching attachments for lead ${firstLead.id}:`, error.message);
-				debugInfo.attachmentError = error.message; // Store the error message
+				debugInfo.attachmentError = error.message;
+				debugInfo.attachmentErrorStack = error.stack;
 				leadsWithAttachments[0] = {
 					...firstLead,
-					attachments: [],
+					attachments: {},
 				};
 			}
 		}
@@ -208,15 +208,15 @@ router.post("/pmData", async (req, res) => {
 				...response.data,
 				data: leadsWithAttachments,
 			},
-			debug: debugInfo, // Include debug information in the response
+			debug: debugInfo,
 		});
 	} catch (error) {
 		console.error("Error fetching PM data from Zoho CRM:", error.message);
-
 		res.status(500).json({
 			success: false,
 			message: "Error fetching PM data from Zoho CRM",
 			error: error.message,
+			errorStack: error.stack,
 		});
 	}
 });
@@ -224,7 +224,7 @@ router.post("/pmData", async (req, res) => {
 async function fetchAttachments(leadId, accessToken) {
 	try {
 		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=id,Owner,Proof_of_Gas,Created_Time,Parent_Id`,
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=id,Owner,File_Name,Created_Time,Parent_Id`,
 			{
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
@@ -232,10 +232,26 @@ async function fetchAttachments(leadId, accessToken) {
 			}
 		);
 		console.log("Attachment Response: ", response.data);
-		return response.data; // Return the full response data
 		
+		// Filter attachments for the specific file names we're interested in
+		const filteredAttachments = response.data.data.filter(attachment => 
+			['Proof_of_Gas', 'Proof_of_Electric', 'Proof_of_Renters_Insurance'].includes(attachment.File_Name)
+		);
+		
+		// Create an object with the filtered attachments
+		const attachmentObject = {
+			Proof_of_Gas: filteredAttachments.find(a => a.File_Name === 'Proof_of_Gas'),
+			Proof_of_Electric: filteredAttachments.find(a => a.File_Name === 'Proof_of_Electric'),
+			Proof_of_Renters_Insurance: filteredAttachments.find(a => a.File_Name === 'Proof_of_Renters_Insurance')
+		};
+
+		return {
+			...response.data,
+			filteredData: attachmentObject
+		};
 	} catch (error) {
-		throw error; // Throw the error to be caught in the main function
+		console.error("Error fetching attachments:", error.response ? error.response.data : error.message);
+		throw error;
 	}
 }
 
