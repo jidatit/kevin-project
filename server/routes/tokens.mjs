@@ -179,10 +179,12 @@ router.post("/pmData", async (req, res) => {
 
 		let leadsWithAttachments = response.data.data;
 		let debugInfo = {}; // Object to store debug information
-
+		
 		// Fetch attachments only for the first lead
 		if (leadsWithAttachments.length > 0) {
 			const firstLead = leadsWithAttachments[0];
+			debugInfo.firstLead = firstLead;
+			debugInfo.firstLeadId = firstLead.id;
 			try {
 				const attachmentResponse = await fetchAttachments(firstLead.id, access_token);
 				debugInfo.attachmentResponse = attachmentResponse; // Store the full attachment response
@@ -222,14 +224,16 @@ router.post("/pmData", async (req, res) => {
 async function fetchAttachments(leadId, accessToken) {
 	try {
 		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=id,Owner,File_Name,Created_Time,Parent_Id`,
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=Proof_of_Gas,Proof_of_Electric,Proof_of_Renters_Insurance`,
 			{
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
 				},
 			}
 		);
+		console.log("Attachment Response: ", response.data);
 		return response.data; // Return the full response data
+		
 	} catch (error) {
 		throw error; // Throw the error to be caught in the main function
 	}
