@@ -187,14 +187,15 @@ router.post("/pmData", async (req, res) => {
 			debugInfo.firstLeadId = firstLead.id;
 			try {
 				const attachmentResponse = await fetchAttachments(firstLead.id, access_token);
-				debugInfo.attachmentResponse = attachmentResponse; // Store the full attachment response
+				debugInfo.attachmentResponse = attachmentResponse;
 				leadsWithAttachments[0] = {
 					...firstLead,
 					attachments: attachmentResponse.data || [],
 				};
 			} catch (error) {
 				console.error(`Error fetching attachments for lead ${firstLead.id}:`, error.message);
-				debugInfo.attachmentError = error.message; // Store the error message
+				debugInfo.attachmentError = error.message;
+				debugInfo.attachmentErrorStack = error.stack;
 				leadsWithAttachments[0] = {
 					...firstLead,
 					attachments: [],
@@ -208,7 +209,7 @@ router.post("/pmData", async (req, res) => {
 				...response.data,
 				data: leadsWithAttachments,
 			},
-			debug: debugInfo, // Include debug information in the response
+			debug: debugInfo, 
 		});
 	} catch (error) {
 		console.error("Error fetching PM data from Zoho CRM:", error.message);
@@ -217,6 +218,7 @@ router.post("/pmData", async (req, res) => {
 			success: false,
 			message: "Error fetching PM data from Zoho CRM",
 			error: error.message,
+			errorStack: error.stack,
 		});
 	}
 });
@@ -224,18 +226,18 @@ router.post("/pmData", async (req, res) => {
 async function fetchAttachments(leadId, accessToken) {
 	try {
 		const response = await axios.get(
-			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments?fields=Proof_of_Gas,Proof_of_Electric,Proof_of_Renters_Insurance`,
+			`https://www.zohoapis.com/crm/v6/Leads/${leadId}/Attachments`,
 			{
 				headers: {
 					Authorization: `Zoho-oauthtoken ${accessToken}`,
 				},
 			}
 		);
-		console.log("Attachment Response: ", response);
-		return response; // Return the full response data
-		
+		console.log("Attachment Response: ", response.data);
+		return response.data;
 	} catch (error) {
-		throw error; // Throw the error to be caught in the main function
+		console.error("Error fetching attachments:", error.response ? error.response.data : error.message);
+		throw error;
 	}
 }
 
