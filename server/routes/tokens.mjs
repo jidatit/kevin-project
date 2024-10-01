@@ -204,7 +204,7 @@ router.post("/lead/:id/attachments", async (req, res) => {
 
     if (!leadRecordResponse || !leadRecordResponse.attachments) {
       return res.status(200).json({
-        success: fasle,
+        success: false,
         message: "Attachments not found for the specified lead.",
       });
     }
