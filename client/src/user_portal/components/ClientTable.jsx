@@ -13,6 +13,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers";
 import { doc, getDoc } from "firebase/firestore";
+import Loader from "../../../utils/Loader";
+
 import { useAuth } from "../../../AuthContext";
 import {
   Typography,
@@ -29,15 +31,15 @@ import CloseIcon from "@mui/icons-material/Close";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { ThemeProvider, useTheme } from "@emotion/react";
 
-const Loader = () => {
-  return (
-    <div className="mt-44 text-center flex justify-center flex-col ">
-      <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-[#6DB23A] mx-auto"></div>
-      <h2 className="text-zinc-900 dark:text-white mt-4">Loading...</h2>
-      <p className="text-zinc-600 dark:text-gray-600">Waiting for data</p>
-    </div>
-  );
-};
+// const Loader = () => {
+//   return (
+//     <div className="mt-44 text-center flex justify-center flex-col ">
+//       <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-[#6DB23A] mx-auto"></div>
+//       <h2 className="text-zinc-900 dark:text-white mt-4">Loading...</h2>
+//       <p className="text-zinc-600 dark:text-gray-600">Waiting for data</p>
+//     </div>
+//   );
+// };
 
 const style = {
   position: "absolute",
@@ -59,7 +61,9 @@ const ClientTable = () => {
   const [leadsData, setLeadsData] = useState([]);
   const [dataWithLeadId, setDataWithLeadId] = useState([]);
   const [filteredLeadsData, setFilteredLeadsData] = useState([]);
+  const [attachmentLoading, setAttachmentLoading] = useState(false);
   const [showOrHideFilters, setShowOrHideFilters] = useState(false);
+  const [Attachments, setAttachments] = useState([]);
   const [rowPerPage, setRowPerPage] = useState(10);
   const [rowsToShow, setRowsToShow] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -166,8 +170,6 @@ const ClientTable = () => {
 
       // Assuming response.data.data.data is an array
       const userTypeDataList = response.data.data.data;
-      // console.log("api/zoho response:", response);
-      // console.log("User Type Data List:", userTypeDataList);
 
       // Function to fetch PM or agent data based on the response structure
       const fetchLeadData = async (leadSource, leadCode) => {
@@ -178,7 +180,6 @@ const ClientTable = () => {
             `https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
             { [leadSource]: leadCode }
           );
-          // console.log(`api/${endpoint} response:`, leadResponse);
 
           // Check response structure
           if (leadResponse.data.success) {
@@ -206,11 +207,6 @@ const ClientTable = () => {
       for (let userTypeData of userTypeDataList) {
         const leadSource1 = userTypeData.LEAD_Source1;
         const agentRFCode = userTypeData.AGENT_RF_CODE;
-
-        // Log the values to debug
-        // console.log("Checking User Type Data:", userTypeData);
-        // console.log("LEAD_Source1:", leadSource1);
-        // console.log("AGENT_RF_CODE:", agentRFCode);
 
         // Check for LEAD_Source1
         if (leadSource1) {
@@ -327,6 +323,28 @@ const ClientTable = () => {
       setFilteredLeadsData(filtered);
     }
   };
+  const fetchAttachments = async (leadId, rowIndex) => {
+    // Set loading state for the specific row
+    setAttachmentLoading((prev) => ({ ...prev, [rowIndex]: true }));
+
+    try {
+      const response = await axios.post(
+        `https://kevin-project-zfc8.onrender.com/api/lead/${leadId}/attachments`
+      );
+
+      if (response.data.success) {
+        handleOpenModal(response.data.data);
+        setAttachmentLoading((prev) => ({ ...prev, [rowIndex]: false }));
+      } else {
+        toast.error(`Error : ${response.data.message}`);
+        setAttachmentLoading((prev) => ({ ...prev, [rowIndex]: false }));
+      }
+    } catch (error) {
+      toast(`Error fetching attachments: ${error.message}`);
+    } finally {
+      setAttachmentLoading((prev) => ({ ...prev, [rowIndex]: false }));
+    }
+  };
 
   useEffect(() => {
     applyFilters();
@@ -353,14 +371,29 @@ const ClientTable = () => {
       sortOrder: event.target.value,
     }));
   };
+  const handleOpenModal = (proofData) => {
+    // Initialize an empty array to hold attachments
+    const attachments = [];
 
-  const handleOpenModal = (proofData, type) => {
-    if (!proofData || !proofData[0] || !proofData[0].fileDetails) return;
+    // Define the types of proof to check
+    const proofTypes = [
+      { key: "Proof_of_Electric", label: "Electric Insurance" },
+      { key: "Proof_of_Gas", label: "Gas Insurance" },
+      { key: "Proof_of_Renters_Insurance", label: "Renters Insurance" },
+    ];
 
-    const { fileName, fileType, fileData } = proofData[0].fileDetails;
-    const dataUrl = `data:${fileType};base64,${fileData}`;
+    proofTypes.forEach(({ key, label }) => {
+      const proofItem = proofData[key];
 
-    setModalContent({ fileName, fileType, dataUrl, type });
+      // Check if the proofItem exists and has fileDetails
+      if (proofItem && proofItem[0] && proofItem[0].fileDetails) {
+        const { fileName, fileType, fileData } = proofItem[0].fileDetails;
+        const dataUrl = `data:${fileType};base64,${fileData}`;
+        attachments.push({ fileName, fileType, dataUrl, label });
+      }
+    });
+
+    setModalContent(attachments);
     setModalOpen(true);
   };
 
@@ -368,67 +401,133 @@ const ClientTable = () => {
     setModalOpen(false);
     setModalContent(null);
   };
-
-  const renderProofDocument = (proofData, type) => {
-    if (!proofData || !proofData[0] || !proofData[0].fileDetails) return null;
-
-    return (
-      <Button
-        size={isMobile ? "small" : "medium"}
-        onClick={() => handleOpenModal(proofData, type)}
-        sx={{
-          backgroundColor: "#6DB23A",
-          color: "white",
-          minWidth: 0,
-          padding: isMobile ? "4px 8px" : "6px 16px",
-          fontSize: isMobile ? "0.75rem" : "0.875rem",
-          whiteSpace: "nowrap",
-          borderRadius: "1.5rem",
-          "&:hover": {
-            backgroundColor: "#5a9431",
-          },
-          "& .MuiButton-startIcon": {
-            marginRight: isMobile ? 4 : 8,
-          },
-        }}
-      >
-        {isMobile
-          ? ""
-          : isTablet
-          ? "View"
-          : `View ${type === "pdf" ? "PDF" : "Image"}`}
-      </Button>
-    );
+  const handleFetchAndOpen = (data, index) => {
+    const leadId = data?.id;
+    if (leadId) {
+      fetchAttachments(leadId, index);
+    } else {
+      toast.error("Lead id is missing");
+    }
   };
-
   const renderModalContent = () => {
-    if (!modalContent) return null;
-
-    const { fileName, fileType, dataUrl, type } = modalContent;
+    if (!modalContent || modalContent.length === 0) {
+      return (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "20px",
+          }}
+          onClick={handleCloseModal}
+        >
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: "800px",
+              maxHeight: "90vh",
+              backgroundColor: "white",
+              borderRadius: "8px",
+              boxShadow: 3,
+              overflow: "auto",
+              padding: "20px",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                marginBottom: "20px",
+              }}
+            >
+              <Typography variant="h6" sx={{ marginTop: 2 }}>
+                No attachment to show
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      );
+    }
 
     return (
       <Box
-        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "20px",
+        }}
+        onClick={handleCloseModal}
       >
-        <Typography variant="h6" component="h2" gutterBottom>
-          {fileName}
-        </Typography>
-        {type === "pdf" ? (
-          <iframe src={dataUrl} width="100%" height="500px" />
-        ) : (
-          <img
-            src={dataUrl}
-            alt={fileName}
-            style={{ maxWidth: "100%", maxHeight: "100%" }}
-          />
-        )}
-        <a
-          className="bg-[#6DB23A] rounded-3xl text-white mt-4 py-2 px-4 no-underline inline-block text-center hover:bg-[#5a9431] transition-colors duration-300"
-          href={dataUrl}
-          download={fileName}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: "800px",
+            maxHeight: "90vh",
+            backgroundColor: "white",
+            borderRadius: "8px",
+            boxShadow: 3,
+            overflow: "auto",
+            padding: "20px",
+          }}
+          onClick={(e) => e.stopPropagation()}
         >
-          Download {type === "pdf" ? "PDF" : "Image"}
-        </a>
+          {modalContent.map((attachment, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                marginBottom: "20px",
+              }}
+            >
+              {attachment.fileType === "application/pdf;charset=UTF-8" ? (
+                <iframe
+                  src={attachment.dataUrl}
+                  width="100%"
+                  height="500px"
+                  style={{ border: "none" }}
+                />
+              ) : (
+                <img
+                  src={attachment.dataUrl}
+                  alt={attachment.fileName}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "500px",
+                    objectFit: "contain",
+                  }}
+                />
+              )}
+              <Typography variant="h6" sx={{ marginTop: 2 }}>
+                {attachment.fileName}
+              </Typography>
+              <a
+                className="bg-[#6DB23A] rounded-3xl text-white mt-4 py-2 px-4 no-underline inline-block text-center hover:bg-[#5a9431] transition-colors duration-300"
+                href={attachment.dataUrl}
+                download={attachment.fileName}
+              >
+                Download{" "}
+                {attachment.fileType === "application/pdf;charset=UTF-8"
+                  ? "PDF"
+                  : "Image"}
+              </a>
+            </Box>
+          ))}
+        </Box>
       </Box>
     );
   };
@@ -749,14 +848,39 @@ const ClientTable = () => {
                             Download CSV
                           </CSVLink>
                         </td>
-                        <td>
-                          {/* {renderProofDocument(
-                            data.fullLeadRecord?.Proof_of_Renters_Insurance,
-                            "pdf"
-                          )} */}
-                        </td>
+                        {/* <td>
+                          <Button onClick={() => fetchAttachments(data?.id)}>
+                            View attachment
+                          </Button>
+                        </td> */}
 
-                        <Modal
+                        <td>
+                          <Button
+                            size="medium"
+                            onClick={() => {
+                              handleFetchAndOpen(data, index);
+                            }}
+                            sx={{
+                              backgroundColor: "#6DB23A",
+                              color: "white",
+                              minWidth: 0,
+                              padding: "6px 16px",
+                              paddingX: "4px",
+                              fontSize: "0.875rem",
+                              whiteSpace: "nowrap",
+                              borderRadius: "1.5rem",
+                              "&:hover": {
+                                backgroundColor: "#5a9431",
+                              },
+                              width: "150px",
+                            }}
+                          >
+                            {attachmentLoading[index]
+                              ? "Loading"
+                              : " View Proofs"}
+                          </Button>
+                        </td>
+                        {/* <Modal
                           open={showModal}
                           onClose={handleClose}
                           aria-labelledby="modal-title"
@@ -795,36 +919,21 @@ const ClientTable = () => {
                               sx={{ width: "100%", mt: 2 }}
                             />
                           </Box>
-                        </Modal>
+                        </Modal> */}
                       </tr>
                     ))}
+                    <Modal
+                      open={modalOpen}
+                      onClose={handleCloseModal}
+                      aria-labelledby="proof-document-modal"
+                      aria-describedby="modal-modal-description"
+                    >
+                      <div>{renderModalContent()}</div>
+                    </Modal>
                   </tbody>
                 ) : (
                   "No data found"
                 )}
-                <Modal
-                  open={modalOpen}
-                  onClose={handleCloseModal}
-                  aria-labelledby="proof-document-modal"
-                  aria-describedby="modal-modal-description"
-                >
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: "100%",
-                      maxWidth: 800,
-                      bgcolor: "background.paper",
-                      border: "2px solid #000",
-                      boxShadow: 24,
-                      p: 4,
-                    }}
-                  >
-                    {renderModalContent()}
-                  </Box>
-                </Modal>
               </table>
             </div>
 
