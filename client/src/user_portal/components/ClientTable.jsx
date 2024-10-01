@@ -62,7 +62,7 @@ const ClientTable = () => {
   const [showOrHideFilters, setShowOrHideFilters] = useState(false);
   const [rowPerPage, setRowPerPage] = useState(10);
   const [rowsToShow, setRowsToShow] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const theme = createTheme(); // You can customize this theme
@@ -81,10 +81,6 @@ const ClientTable = () => {
     setShowOrHideFilters((prev) => !prev);
   };
 
-  const handleRowPerPageChange = (event) => {
-    setRowPerPage(event.target.value);
-  };
-
   const [openFirst, setOpenFirst] = useState(false);
   const handleOpenFirst = (leadData) => () => {
     setOpenFirst(true);
@@ -92,56 +88,71 @@ const ClientTable = () => {
   };
   const handleCloseFirst = () => setOpenFirst(false);
 
+  // Initial page load - Ensure currentPage is set to 1 (not 2)
   useEffect(() => {
-    getLeadsData();
+    setCurrentPage(1); // Set to page 1 by default
+    getLeadsData(1); // Fetch the first page's data on load
   }, []);
 
   useEffect(() => {
     setRowsToShow(filteredLeadsData.slice(0, rowPerPage));
   }, [filteredLeadsData, rowPerPage]);
+  // const handleRowPerPageChange = (event) => {
+  //   setRowPerPage(event.target.value);
+  //   setCurrentPage(0); // Reset to the first page when row per page changes
+  //   getLeadsData(0); // Fetch data for the first page with the new rows per page
+  // };
 
-  const totalPage = useMemo(
-    () => Math.ceil(filteredLeadsData.length / rowPerPage),
-    [filteredLeadsData.length, rowPerPage]
-  );
-
-  const generatePaginationLinks = () => {
-    const paginationLinks = [];
-    const ellipsis = "...";
-
-    if (totalPage <= 7) {
-      for (let i = 1; i <= totalPage; i++) {
-        paginationLinks.push(i);
-      }
-    } else {
-      if (currentPage <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          paginationLinks.push(i);
-        }
-        paginationLinks.push(ellipsis);
-        paginationLinks.push(totalPage);
-      } else if (currentPage >= totalPage - 3) {
-        paginationLinks.push(1);
-        paginationLinks.push(ellipsis);
-        for (let i = totalPage - 4; i <= totalPage; i++) {
-          paginationLinks.push(i);
-        }
-      } else {
-        paginationLinks.push(1);
-        paginationLinks.push(ellipsis);
-
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          paginationLinks.push(i);
-        }
-
-        paginationLinks.push(ellipsis);
-        paginationLinks.push(totalPage);
-      }
-    }
-    return paginationLinks;
+  const handleRowPerPageChange = (event) => {
+    setCurrentPage(1); // Always reset to the first page (page 1)
+    getLeadsData(1); // Fetch data for the first page
   };
 
-  const getLeadsData = async () => {
+  const nextPage = () => {
+    const nextPage = currentPage + 1;
+    // Fetch new data for the next page
+    // getLeadsData(nextPage).then((response) => {
+    //   if (response?.data?.length) {
+    //     setCurrentPage(nextPage);
+    //   } else {
+    //     console.log("No more data available for next pages.");
+    //   }
+    // });
+    getLeadsData(nextPage);
+    setCurrentPage(nextPage);
+  };
+  const previousPage = () => {
+    if (currentPage > 1) {
+      // Ensure it doesn't go below page 1
+      const prevPage = currentPage - 1;
+      setCurrentPage(prevPage);
+      getLeadsData(prevPage); // Fetch new data for the previous page
+    }
+  };
+  const changePage = (pageIndex) => {
+    const validPage = pageIndex + 1; // Ensure the page sent is at least 1 (not 0)
+    if (validPage >= 1) {
+      setCurrentPage(validPage);
+      getLeadsData(validPage); // Fetch data for the selected page
+    }
+  };
+  const generatePaginationLinks = () => {
+    const pages = [];
+    const totalPages = 10; // Assuming 10 as an example, replace with your actual totalPages logic
+    const maxPageLinks = 5; // Number of pagination links to show at once
+
+    // Start generating from currentPage and generate the next few pages
+    const startPage = Math.max(1, currentPage - Math.floor(maxPageLinks / 2));
+    const endPage = Math.min(totalPages, startPage + maxPageLinks - 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  const getLeadsData = async (page = 1) => {
     setLoading(true);
     if (!userID) return;
 
@@ -170,13 +181,18 @@ const ClientTable = () => {
       // console.log("User Type Data List:", userTypeDataList);
 
       // Function to fetch PM or agent data based on the response structure
-      const fetchLeadData = async (leadSource, leadCode) => {
+      const fetchLeadData = async (leadSource, leadCode, page) => {
         const endpoint = leadSource === "LEAD_Source1" ? "pmData" : "agentData";
+
+        const requestBody = {
+          [leadSource]: leadCode,
+          ...(endpoint === "pmData" && { page }), // Conditionally add page if pmData
+        };
 
         try {
           const leadResponse = await axios.post(
             `https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
-            { [leadSource]: leadCode }
+            requestBody
           );
           // console.log(`api/${endpoint} response:`, leadResponse);
 
@@ -214,13 +230,13 @@ const ClientTable = () => {
 
         // Check for LEAD_Source1
         if (leadSource1) {
-          leadsData = await fetchLeadData("LEAD_Source1", leadSource1);
+          leadsData = await fetchLeadData("LEAD_Source1", leadSource1, page);
           if (leadsData) break; // Break if leadsData is found
         }
 
         // Check for AGENT_RF_CODE
         if (agentRFCode) {
-          leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode);
+          leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode, page);
           if (leadsData) break; // Break if leadsData is found
         }
       }
@@ -236,34 +252,6 @@ const ClientTable = () => {
       toast.error("Error retrieving user data. Please try again.");
     } finally {
       setLoading(false); // Ensure loading is set to false in all cases
-    }
-  };
-
-  const nextPage = () => {
-    const startIndex = rowPerPage * (currentPage + 1);
-    const endIndex = startIndex + rowPerPage;
-    const newArray = filteredLeadsData.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    setCurrentPage(currentPage + 1);
-  };
-
-  const changePage = (value) => {
-    const startIndex = value * rowPerPage;
-    const endIndex = startIndex + rowPerPage;
-    const newArray = filteredLeadsData.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    setCurrentPage(value);
-  };
-
-  const previousPage = () => {
-    const startIndex = (currentPage - 1) * rowPerPage;
-    const endIndex = startIndex + rowPerPage;
-    const newArray = filteredLeadsData.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    } else {
-      setCurrentPage(0);
     }
   };
 
@@ -845,120 +833,45 @@ const ClientTable = () => {
               </table>
             </div>
 
-            <div className="w-full flex flex-col lg:flex-row justify-center sm:justify-between gap-4 sm:gap-10 mt-8 px-0 lg:px-4 xl:px-4 items-center">
-              {/* Showing entries information */}
-              <div className="text-base text-center">
-                Showing
-                <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg">
-                  {currentPage === 0 ? 1 : currentPage * rowPerPage + 1}
-                </span>
-                to
-                <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
-                  {currentPage === totalPage - 1
-                    ? leadsData?.length
-                    : (currentPage + 1) * rowPerPage}
-                </span>
-                of
-                <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
-                  {leadsData?.length}
-                </span>
-                entries
-              </div>
-
-              {/* Rows per page selection */}
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <div> Rows Per Page </div>
-                <Box sx={{ width: 200 }}>
-                  <FormControl fullWidth>
-                    <Select
-                      id="rows-per-page"
-                      value={rowPerPage}
-                      onChange={handleRowPerPageChange}
-                      sx={{
-                        height: 40,
-                        backgroundColor: "#6DB23A",
-                        color: "white",
-                        borderRadius: "8px",
-                        ".MuiOutlinedInput-notchedOutline": {
-                          borderColor: "transparent",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "transparent",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "transparent",
-                        },
-                        ".MuiSelect-icon": {
-                          color: "white",
-                        },
-                        "& .MuiSelect-select": {
-                          borderRadius: "8px",
-                        },
-                        "& .MuiListItem-root": {
-                          "&:hover": {
-                            backgroundColor: "white",
-                            color: "black",
-                          },
-                        },
-                        "& .Mui-selected": {
-                          backgroundColor: "white",
-                          color: "black",
-                        },
-                      }}
-                    >
-                      <MenuItem value={5}>5</MenuItem>
-                      <MenuItem value={10}>10</MenuItem>
-                      <MenuItem value={15}>15</MenuItem>
-                      <MenuItem value={20}>20</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-              </div>
-
-              {/* Pagination controls */}
-              <div className="flex justify-center">
-                <ul
-                  className="flex justify-center items-center gap-x-2 z-30"
-                  role="navigation"
-                  aria-label="Pagination"
+            <div className="flex justify-center">
+              <ul
+                className="flex justify-center items-center gap-x-2 z-30"
+                role="navigation"
+                aria-label="Pagination"
+              >
+                <li
+                  className={`prev-btn flex items-center justify-center w-9 h-9 rounded-md border ${
+                    currentPage === 1
+                      ? "bg-[#cccccc] pointer-events-none"
+                      : "cursor-pointer border-[#E4E4EB]"
+                  }`}
+                  onClick={previousPage}
                 >
-                  <li
-                    className={`prev-btn flex items-center justify-center w-9 h-9 rounded-md border ${
-                      currentPage == 0
-                        ? "bg-[#cccccc] pointer-events-none"
-                        : " cursor-pointer border-[#E4E4EB]"
-                    }`}
-                    onClick={previousPage}
-                  >
-                    <img src="https://www.tailwindtap.com/assets/travelagency-admin/leftarrow.svg" />
-                  </li>
+                  <img src="https://www.tailwindtap.com/assets/travelagency-admin/leftarrow.svg" />
+                </li>
 
-                  {generatePaginationLinks().map((item, index) => (
-                    <li
-                      key={index}
-                      onClick={() => changePage(item - 1)}
-                      className={`flex items-center justify-center w-9 h-9 rounded-md border ${
-                        currentPage === item - 1
-                          ? "text-white bg-[#6DB23A] border-[#6DB23A]"
-                          : "border-[#E4E4EB]"
-                      }`}
-                    >
-                      <span aria-hidden="true">{item}</span>
-                    </li>
-                  ))}
-
+                {generatePaginationLinks().map((item) => (
                   <li
+                    key={item}
+                    onClick={() => changePage(item)} // No need for "- 1", pass the actual page number
                     className={`flex items-center justify-center w-9 h-9 rounded-md border ${
-                      currentPage == totalPage - 1
-                        ? "bg-[#cccccc] pointer-events-none"
-                        : " cursor-pointer border-[#E4E4EB]"
+                      currentPage === item
+                        ? "text-white bg-[#6DB23A] border-[#6DB23A]"
+                        : "border-[#E4E4EB]"
                     }`}
-                    onClick={nextPage}
                   >
-                    <img src="https://www.tailwindtap.com/assets/travelagency-admin/rightarrow.svg" />
+                    <span aria-hidden="true">{item}</span>
                   </li>
-                </ul>
-              </div>
+                ))}
+
+                {/* Next button */}
+                <li
+                  className={`flex items-center justify-center w-9 h-9 rounded-md border ${"cursor-pointer border-[#E4E4EB]"}`}
+                  onClick={nextPage}
+                >
+                  <img src="https://www.tailwindtap.com/assets/travelagency-admin/rightarrow.svg" />
+                </li>
+              </ul>
             </div>
 
             {/* <div className="w-full flex flex-col justify-start items-start mt-7">
