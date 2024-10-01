@@ -62,7 +62,7 @@ const ClientTable = () => {
   const [showOrHideFilters, setShowOrHideFilters] = useState(false);
   const [rowPerPage, setRowPerPage] = useState(10);
   const [rowsToShow, setRowsToShow] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const theme = createTheme(); // You can customize this theme
@@ -93,23 +93,16 @@ const ClientTable = () => {
   const handleCloseFirst = () => setOpenFirst(false);
 
   useEffect(() => {
-    if (currentPage > 0) {
-      getLeadsData(currentPage); // Pass current page to the function
-    }
-  }, [currentPage]); // Fetch data whenever currentPage changes
+    getLeadsData();
+  }, []);
 
   useEffect(() => {
-    setRowsToShow(
-      filteredLeadsData.slice(
-        currentPage * rowPerPage,
-        (currentPage + 1) * rowPerPage
-      )
-    );
-  }, [filteredLeadsData, currentPage, rowPerPage]);
+    setRowsToShow(filteredLeadsData.slice(0, rowPerPage));
+  }, [filteredLeadsData, rowPerPage]);
 
   const totalPage = useMemo(
-    () => Math.ceil(leadsData.length / rowPerPage),
-    [leadsData.length, rowPerPage]
+    () => Math.ceil(filteredLeadsData.length / rowPerPage),
+    [filteredLeadsData.length, rowPerPage]
   );
 
   const generatePaginationLinks = () => {
@@ -148,7 +141,7 @@ const ClientTable = () => {
     return paginationLinks;
   };
 
-  const getLeadsData = async (page) => {
+  const getLeadsData = async () => {
     setLoading(true);
     if (!userID) return;
 
@@ -177,13 +170,13 @@ const ClientTable = () => {
       // console.log("User Type Data List:", userTypeDataList);
 
       // Function to fetch PM or agent data based on the response structure
-      const fetchLeadData = async (leadSource, leadCode, page) => {
+      const fetchLeadData = async (leadSource, leadCode) => {
         const endpoint = leadSource === "LEAD_Source1" ? "pmData" : "agentData";
 
         try {
           const leadResponse = await axios.post(
             `https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
-            { [leadSource]: leadCode, page }
+            { [leadSource]: leadCode }
           );
           // console.log(`api/${endpoint} response:`, leadResponse);
 
@@ -214,20 +207,26 @@ const ClientTable = () => {
         const leadSource1 = userTypeData.LEAD_Source1;
         const agentRFCode = userTypeData.AGENT_RF_CODE;
 
+        // Log the values to debug
+        // console.log("Checking User Type Data:", userTypeData);
+        // console.log("LEAD_Source1:", leadSource1);
+        // console.log("AGENT_RF_CODE:", agentRFCode);
+
+        // Check for LEAD_Source1
         if (leadSource1) {
-          leadsData = await fetchLeadData("LEAD_Source1", leadSource1, page); // Pass page number
-          if (leadsData) break;
+          leadsData = await fetchLeadData("LEAD_Source1", leadSource1);
+          if (leadsData) break; // Break if leadsData is found
         }
 
+        // Check for AGENT_RF_CODE
         if (agentRFCode) {
-          leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode, page); // Pass page number
-          if (leadsData) break;
+          leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode);
+          if (leadsData) break; // Break if leadsData is found
         }
       }
 
       if (leadsData) {
         setLeadsData(leadsData);
-        setFilteredLeadsData(leadsData);
       } else {
         console.log("No matching leads data found.");
         toast.warning("No matching leads data found.");
@@ -248,15 +247,11 @@ const ClientTable = () => {
     setCurrentPage(currentPage + 1);
   };
 
-  //   const changePage = (value) => {
-  //     const startIndex = value * rowPerPage;
-  //     const endIndex = startIndex + rowPerPage;
-  //     const newArray = filteredLeadsData.slice(startIndex, endIndex);
-  //     setRowsToShow(newArray);
-  //     setCurrentPage(value);
-  //   };
-
   const changePage = (value) => {
+    const startIndex = value * rowPerPage;
+    const endIndex = startIndex + rowPerPage;
+    const newArray = filteredLeadsData.slice(startIndex, endIndex);
+    setRowsToShow(newArray);
     setCurrentPage(value);
   };
 
@@ -268,7 +263,7 @@ const ClientTable = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     } else {
-      setCurrentPage(1);
+      setCurrentPage(0);
     }
   };
 
@@ -855,7 +850,7 @@ const ClientTable = () => {
               <div className="text-base text-center">
                 Showing
                 <span className="font-bold bg-[#6DB23A] text-white mx-2 p-2 text-center rounded-lg">
-                  {currentPage === 1 ? 1 : currentPage * rowPerPage + 1}
+                  {currentPage === 0 ? 1 : currentPage * rowPerPage + 1}
                 </span>
                 to
                 <span className="font-bold bg-[#6DB23A] text-white mx-2 py-2 px-3 text-center rounded-lg">
@@ -929,7 +924,7 @@ const ClientTable = () => {
                 >
                   <li
                     className={`prev-btn flex items-center justify-center w-9 h-9 rounded-md border ${
-                      currentPage == 1
+                      currentPage == 0
                         ? "bg-[#cccccc] pointer-events-none"
                         : " cursor-pointer border-[#E4E4EB]"
                     }`}
@@ -954,7 +949,7 @@ const ClientTable = () => {
 
                   <li
                     className={`flex items-center justify-center w-9 h-9 rounded-md border ${
-                      currentPage == 100 - 1
+                      currentPage == totalPage - 1
                         ? "bg-[#cccccc] pointer-events-none"
                         : " cursor-pointer border-[#E4E4EB]"
                     }`}

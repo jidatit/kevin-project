@@ -154,16 +154,13 @@ router.post("/agentData", async (req, res) => {
 });
 
 router.post("/pmData", async (req, res) => {
-  const { LEAD_Source1, page } = req.body;
+  const { LEAD_Source1 } = req.body;
 
   try {
     const response = await axios.post(
       "https://www.zohoapis.com/crm/v6/coql",
       {
-        // Calculate offset based on the page number
-        select_query: `select id, Full_Name, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 10 offset ${
-          (page - 1) * 10
-        }`,
+        select_query: `select id, Full_Name , Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
       },
       {
         headers: {
@@ -185,30 +182,29 @@ router.post("/pmData", async (req, res) => {
     let leadsWithAttachments = response.data.data;
 
     if (leadsWithAttachments.length > 0) {
-      leadsWithAttachments = await Promise.all(
-        leadsWithAttachments.map(async (lead) => {
-          try {
-            const leadRecordResponse = await fetchLeadRecord(
-              lead.id,
-              access_token
-            );
-            return {
-              ...lead,
-              fullLeadRecord: leadRecordResponse.leadRecord || {},
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching lead record for lead ${lead.id}:`,
-              error.message
-            );
-            return {
-              ...lead,
-              fullLeadRecord: {},
-              error: error.message,
-            };
-          }
-        })
-      );
+      for (let i = 0; i < leadsWithAttachments.length; i++) {
+        const lead = leadsWithAttachments[i];
+        try {
+          const leadRecordResponse = await fetchLeadRecord(
+            lead.id,
+            access_token
+          );
+          leadsWithAttachments[i] = {
+            ...lead,
+            fullLeadRecord: leadRecordResponse.leadRecord || {},
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching lead record for lead ${lead.id}:`,
+            error.message
+          );
+          leadsWithAttachments[i] = {
+            ...lead,
+            fullLeadRecord: {},
+            error: error.message,
+          };
+        }
+      }
     }
 
     res.status(200).json({
