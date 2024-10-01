@@ -31,9 +31,15 @@ const UserLogin = () => {
     <div className="w-full min-h-screen flex flex-col justify-center items-center bg-[#6DB23A]">
       <ToastContainer />
       <div className="w-[90%] relative md:w-[70%] bg-[#FFFFFF] pt-[60px] pb-[60px] rounded-[10px] flex flex-col justify-center items-center gap-5">
+        <img
+          src="./logo.png"
+          alt="Logo"
+          className="w-[25%] md:w-[30%] max-w-[30%] h-auto"
+        />
         <h2 className="text-center font-bold lg:text-[30px] md:text-[25px] text-[20px]">
           Login
         </h2>
+
         <form
           className="w-[90%] md:w-[60%] flex gap-2 flex-col justify-center items-center"
           onSubmit={handleLogin}

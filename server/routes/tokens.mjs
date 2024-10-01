@@ -36,11 +36,9 @@ router.post("/accessAndRefreshToken", async (req, res) => {
       }
     );
 
-    console.log("Response Data: ", response.data);
     access_token = response.data.access_token;
     refresh_token = response.data.refresh_token;
-    console.log("Access Token : ", access_token);
-    console.log("Refresh Token : ", refresh_token);
+
     res.json(response.data);
 
     scheduleTokenRefresh();
@@ -89,8 +87,6 @@ router.post("/zoho", async (req, res) => {
     );
 
     if (response.status !== 200) {
-      console.error("Error from Zoho CRM:", response.data);
-
       return res.status(200).json({
         success: false,
         message: "Error from Zoho CRM",
@@ -129,8 +125,6 @@ router.post("/agentData", async (req, res) => {
     );
 
     if (response.status !== 200) {
-      console.error("Error from Zoho CRM:", response.data);
-
       return res.status(200).json({
         success: false,
         message: "Error from Zoho CRM",
@@ -170,8 +164,6 @@ router.post("/pmData", async (req, res) => {
     );
 
     if (response.status !== 200) {
-      console.error("Error from Zoho CRM:", response.data);
-
       return res.status(200).json({
         success: false,
         message: "Error from Zoho CRM",
@@ -201,7 +193,7 @@ router.post("/lead/:id/attachments", async (req, res) => {
 
   try {
     const leadRecordResponse = await fetchLeadRecord(id, access_token);
-    console.log("leadrecord", leadRecordResponse);
+
     if (!leadRecordResponse || !leadRecordResponse.leadRecord) {
       return res.status(200).json({
         success: false,
@@ -247,7 +239,6 @@ async function fetchLeadRecord(leadId, accessToken) {
       !Array.isArray(response.data.data) ||
       response.data.data.length === 0
     ) {
-      console.log("Unexpected response structure:", response.data);
       return { data: {} };
     }
 
@@ -294,7 +285,6 @@ async function fetchFileDetails(fileId, accessToken) {
     );
 
     // Log the response headers
-    console.log("File Details Response Headers:", response.headers);
 
     // Get the file name from the Content-Disposition header
     const contentDisposition = response.headers["content-disposition"] || "";
@@ -347,9 +337,8 @@ export async function refreshAccessToken() {
       }
     );
 
-    console.log("Refresh Response Data: ", response.data);
     access_token = response.data.access_token;
-    console.log("New Access Token : ", access_token);
+
     return response;
   } catch (error) {
     console.error("Error refreshing access token:", error);
