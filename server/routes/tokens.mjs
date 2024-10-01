@@ -201,8 +201,8 @@ router.post("/lead/:id/attachments", async (req, res) => {
 
   try {
     const leadRecordResponse = await fetchLeadRecord(id, access_token);
-
-    if (!leadRecordResponse || !leadRecordResponse.attachments) {
+    console.log("leadrecord", leadRecordResponse);
+    if (!leadRecordResponse || !leadRecordResponse.leadRecord) {
       return res.status(200).json({
         success: false,
         message: "Attachments not found for the specified lead.",
@@ -211,7 +211,7 @@ router.post("/lead/:id/attachments", async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: leadRecordResponse.attachments,
+      data: leadRecordResponse.leadRecord,
     });
   } catch (error) {
     console.error(`Error fetching attachments for lead ${id}:`, error.message);
