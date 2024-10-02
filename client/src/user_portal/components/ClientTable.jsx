@@ -12,6 +12,8 @@ import FormControl from "@mui/material/FormControl";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers";
+import Divider from "@mui/material/Divider";
+
 import { doc, getDoc } from "firebase/firestore";
 import Loader from "../../../utils/Loader";
 
@@ -512,9 +514,10 @@ const ClientTable = () => {
                   }}
                 />
               )}
-              <Typography variant="h6" sx={{ marginTop: 2 }}>
+              <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
                 {attachment.fileName}
               </Typography>
+
               <a
                 className="bg-[#6DB23A] rounded-3xl text-white mt-4 py-2 px-4 no-underline inline-block text-center hover:bg-[#5a9431] transition-colors duration-300"
                 href={attachment.dataUrl}
@@ -525,6 +528,18 @@ const ClientTable = () => {
                   ? "PDF"
                   : "Image"}
               </a>
+
+              {/* Separator between attachments */}
+              {index < modalContent.length - 1 && (
+                <Divider
+                  sx={{
+                    width: "100%",
+                    marginY: 4,
+                    borderColor: "#e0e0e0",
+                    borderWidth: "2px",
+                  }}
+                />
+              )}
             </Box>
           ))}
         </Box>
