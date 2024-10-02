@@ -13,6 +13,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers";
 import Divider from "@mui/material/Divider";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { doc, getDoc } from "firebase/firestore";
 import Loader from "../../../utils/Loader";
@@ -60,6 +61,7 @@ const ClientTable = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState(null);
   const [isImageFullSize, setIsImageFullSize] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [leadsData, setLeadsData] = useState([]);
   const [dataWithLeadId, setDataWithLeadId] = useState([]);
   const [filteredLeadsData, setFilteredLeadsData] = useState([]);
@@ -458,6 +460,8 @@ const ClientTable = () => {
       );
     }
 
+    const attachment = modalContent[currentIndex];
+
     return (
       <Box
         sx={{
@@ -486,62 +490,78 @@ const ClientTable = () => {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {modalContent.map((attachment, index) => (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            {attachment.fileType === "application/pdf;charset=UTF-8" ? (
+              <iframe
+                src={attachment.dataUrl}
+                width="100%"
+                height="500px"
+                style={{ border: "none" }}
+              />
+            ) : (
+              <img
+                src={attachment.dataUrl}
+                alt={attachment.fileName}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "500px",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
+              {attachment.fileName}
+            </Typography>
+
+            <a
+              className="bg-[#6DB23A] rounded-3xl text-white mt-4 py-2 px-4 no-underline inline-block text-center hover:bg-[#5a9431] transition-colors duration-300"
+              href={attachment.dataUrl}
+              download={attachment.fileName}
             >
-              {attachment.fileType === "application/pdf;charset=UTF-8" ? (
-                <iframe
-                  src={attachment.dataUrl}
-                  width="100%"
-                  height="500px"
-                  style={{ border: "none" }}
-                />
-              ) : (
-                <img
-                  src={attachment.dataUrl}
-                  alt={attachment.fileName}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "500px",
-                    objectFit: "contain",
-                  }}
-                />
-              )}
-              <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
-                {attachment.fileName}
-              </Typography>
+              Download{" "}
+              {attachment.fileType === "application/pdf;charset=UTF-8"
+                ? "PDF"
+                : "Image"}
+            </a>
+          </Box>
 
-              <a
-                className="bg-[#6DB23A] rounded-3xl text-white mt-4 py-2 px-4 no-underline inline-block text-center hover:bg-[#5a9431] transition-colors duration-300"
-                href={attachment.dataUrl}
-                download={attachment.fileName}
-              >
-                Download{" "}
-                {attachment.fileType === "application/pdf;charset=UTF-8"
-                  ? "PDF"
-                  : "Image"}
-              </a>
-
-              {/* Separator between attachments */}
-              {index < modalContent.length - 1 && (
-                <Divider
-                  sx={{
-                    width: "100%",
-                    marginY: 4,
-                    borderColor: "#e0e0e0",
-                    borderWidth: "2px",
-                  }}
-                />
-              )}
-            </Box>
-          ))}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <Button
+              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+              disabled={currentIndex === 0}
+              startIcon={<ChevronLeft />}
+            >
+              Previous
+            </Button>
+            <Typography>
+              Page {currentIndex + 1} of {modalContent.length}
+            </Typography>
+            <Button
+              onClick={() =>
+                setCurrentIndex((prev) =>
+                  Math.min(modalContent.length - 1, prev + 1)
+                )
+              }
+              disabled={currentIndex === modalContent.length - 1}
+              endIcon={<ChevronRight />}
+            >
+              Next
+            </Button>
+          </Box>
         </Box>
       </Box>
     );
