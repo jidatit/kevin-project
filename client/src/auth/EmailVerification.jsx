@@ -29,7 +29,8 @@ const EmailVerification = () => {
 				setSuccess("Email verified successfully!");
 				toast.success("Email verified successfully!");
 				setTimeout(() => {
-					navigate("/user_portal"); // Redirect to home page after verification
+					navigate("/user_portal", { replace: true });
+					window.location.reload(); // This forces a refresh after navigation
 				}, 2000);
 			} catch (error) {
 				console.log("err", error);
