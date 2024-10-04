@@ -134,17 +134,30 @@ const Profile = () => {
 								{userData ? userData.email : "-"}{" "}
 							</h2>
 						</div>
-						<div className="w-full py-4 px-6 bg-gray-200  flex flex-col gap-2">
+						<div className="w-full py-4 px-6 bg-gray-200 flex flex-col gap-2">
 							<h1 className="font-semibold text-lg text-[#6DB23A]">
 								{" "}
 								Agent Referral Link{" "}
 							</h1>
-							<a href={leadsData ? leadsData?.Company_RF_LINK : ""}>
-								<h2 className="font-normal text-sm text-black break-words">
-									{" "}
-									{leadsData ? leadsData?.Company_RF_LINK : "-"}{" "}
-								</h2>
-							</a>
+							{leadsData?.Company_RF_LINK ? (
+								<a
+									href={
+										leadsData.Company_RF_LINK.startsWith("http://") ||
+										leadsData.Company_RF_LINK.startsWith("https://")
+											? leadsData.Company_RF_LINK
+											: `https://${leadsData.Company_RF_LINK}`
+									}
+									target="_blank"
+									className="underline break-words"
+									rel="noopener noreferrer"
+								>
+									<h2 className="font-normal text-sm text-black break-words">
+										{leadsData.Company_RF_LINK}
+									</h2>
+								</a>
+							) : (
+								<h2 className="font-normal text-sm text-black">-</h2>
+							)}
 						</div>
 					</div>
 				</div>

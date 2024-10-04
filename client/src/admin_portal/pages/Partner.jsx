@@ -626,7 +626,7 @@ const PartnerType = () => {
 											<div className="w-full flex flex-row justify-start items-start">
 												<div className="w-full flex flex-col justify-start items-start py-2 px-2 bg-gray-200">
 													<div className="text-lg text-[#6DB23A] font-bold break-words">
-														Go to Settings in Concierge
+														Go to Settling in Concierge
 													</div>
 													<div className="text-base text-[#599032] font-semibold break-words">
 														{partnerType && secondFetchedLink ? (

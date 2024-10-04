@@ -115,7 +115,9 @@ const Dashboard = () => {
 		<>
 			<ToastContainer />
 			<div
-				className={`w-full h-auto flex flex-col mb-6 ${loading ? "opacity-50" : "opacity-100"}`}
+				className={`w-full h-auto flex flex-col mb-6 ${
+					loading ? "opacity-50" : "opacity-100"
+				}`}
 			>
 				<div className="w-full lg:w-[60%] flex flex-col justify-center items-center ">
 					<div className="w-full h-12 rounded-t-lg bg-[#6DB23A]"></div>
@@ -138,18 +140,17 @@ const Dashboard = () => {
 					</div>
 				</div>
 
-				<div className=" w-full flex flex-col justify-center items-center mt-2">
+				<div className="w-full flex flex-col justify-center items-center mt-2">
 					<div className="w-full h-12 rounded-t-lg text-white font-semibold text-base pt-3 pl-3 bg-[#6DB23A]">
-						{" "}
-						Quick LINKS{" "}
+						Quick LINKS
 					</div>
 
-					<div className="w-full h-auto flex flex-col lg:flex-row justify-around items-start gap-3 mt-5 mb-3 px-4">
-						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+					<div className="w-full h-auto flex flex-col lg:flex-row justify-around items-stretch gap-3 mt-5 mb-3 px-4">
+						<div className="w-full lg:max-w-[50%] flex-grow py-3 px-5 lg:px-8 bg-gray-200 rounded-xl flex flex-col justify-between">
 							<div className="text-lg text-[#6DB23A] font-bold">
 								Click Here to Schedule a Call
 							</div>
-							<div className="flex flex-col  text-[#619f34] text-sm font-semibold cursor-pointer">
+							<div className="flex flex-col text-[#619f34] text-sm font-semibold cursor-pointer">
 								{partnerData?.quickLinkFirst ? (
 									<a
 										href={
@@ -158,7 +159,7 @@ const Dashboard = () => {
 												? partnerData.quickLinkFirst
 												: `https://${partnerData.quickLinkFirst}`
 										}
-										className="underline break-words"
+										className="underline"
 										target="_blank"
 										rel="noopener noreferrer"
 									>
@@ -169,11 +170,12 @@ const Dashboard = () => {
 								)}
 							</div>
 						</div>
-						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+
+						<div className="w-full lg:max-w-[50%] flex-grow py-3 px-5 lg:px-8 bg-gray-200 rounded-xl flex flex-col justify-between">
 							<div className="text-lg text-[#6DB23A] font-bold">
-								Go to Settings in Concierge
+								Go to Settling in Concierge
 							</div>
-							<div className="text-sm flex flex-col  text-[#619f34] font-semibold cursor-pointer">
+							<div className="flex flex-col text-[#619f34] text-sm font-semibold cursor-pointer">
 								{partnerData?.quickLinkSecond ? (
 									<a
 										href={
@@ -186,22 +188,21 @@ const Dashboard = () => {
 										target="_blank"
 										rel="noopener noreferrer"
 									>
-										{" "}
-										{partnerData.quickLinkSecond}{" "}
+										{partnerData.quickLinkSecond}
 									</a>
 								) : (
-									<span> No Link Available </span>
+									<span>No Link Available</span>
 								)}
 							</div>
 						</div>
 					</div>
 
-					<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-start gap-3 px-4">
-						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+					<div className="w-full h-auto flex flex-col lg:flex-row justify-start items-stretch gap-3 px-4">
+						<div className="w-full lg:max-w-[50%] flex-grow py-3 px-5 lg:px-8 bg-gray-200 rounded-xl flex flex-col justify-between">
 							<div className="text-lg text-[#6DB23A] font-bold">
 								Email Support Team
 							</div>
-							<div className="text-sm flex flex-col text-[#619f34] font-semibold cursor-pointer">
+							<div className="flex flex-col text-[#619f34] text-sm font-semibold cursor-pointer">
 								{partnerData?.quickLinkThird ? (
 									<a
 										href={`mailto:${partnerData.quickLinkThird}`}
@@ -214,16 +215,26 @@ const Dashboard = () => {
 								)}
 							</div>
 						</div>
-						<div className="w-full lg:max-w-[50%] py-3 px-5 lg:px-8 bg-gray-200 rounded-xl">
+
+						<div className="w-full lg:max-w-[50%] flex-grow py-3 px-5 lg:px-8 bg-gray-200 rounded-xl flex flex-col justify-between">
 							<div className="text-lg text-[#6DB23A] font-bold">
-								Agent Referral Link{" "}
+								Agent Referral Link
 							</div>
-							<div className="text-sm flex flex-col text-[#619f34] font-semibold cursor-pointer">
+							<div className="flex flex-col text-[#619f34] text-sm font-semibold cursor-pointer">
 								{leadsData?.Company_RF_LINK ? (
-									<h2 className="font-normal text-sm text-black break-words">
-										{" "}
-										{leadsData ? leadsData?.Company_RF_LINK : "-"}{" "}
-									</h2>
+									<a
+										href={
+											leadsData.Company_RF_LINK.startsWith("http://") ||
+											leadsData.Company_RF_LINK.startsWith("https://")
+												? leadsData.Company_RF_LINK
+												: `https://${leadsData.Company_RF_LINK}`
+										}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline break-words"
+									>
+										{leadsData.Company_RF_LINK}
+									</a>
 								) : (
 									<span>No Link Available</span>
 								)}

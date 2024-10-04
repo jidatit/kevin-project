@@ -1,10 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
-import Modal from "@mui/material/Modal";
-import Box from "@mui/material/Box";
-import { TextField, Button } from "@mui/material";
-import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+
 import {
 	collection,
 	doc,
@@ -18,12 +13,8 @@ import {
 import { db } from "../../../Firebase";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AddReferral from "./AddReferral";
-import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
-import LinkIcon from "@mui/icons-material/Link";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../../../Firebase";
-import LinearProgress from "@mui/material/LinearProgress";
+
+import axios from "axios";
 
 const style = {
 	position: "absolute",
@@ -51,89 +42,115 @@ const styleReferral = {
 };
 
 const UsersTable = () => {
-	const [productList, setProductList] = useState([]);
+	const [productList, setProductList] = useState([]); // Data to display based on filters
+	const [allUsersData, setAllUsersData] = useState([]); // Store all fetched data here
 	const [rowsLimit] = useState(5);
 	const [rowsToShow, setRowsToShow] = useState([]);
 	const [customPagination, setCustomPagination] = useState([]);
 	const [currentPage, setCurrentPage] = useState(0);
 	const [selectedFilter, setSelectedFilter] = useState("");
+	const [loading, setLoading] = useState(true);
 
-	const [userID, SetUserID] = useState("");
-
-	const handleClose = () => setOpen(false);
-	const handleCloseChild = () => setOpenChild(false);
-
-	const handleOpenReferral = async (id) => {
-		setOpenReferral(true);
-		try {
-			const userRef = doc(db, "admins", id);
-			const updatedDoc = await getDoc(userRef);
-			const data = updatedDoc.data();
-			setFetchReferral(data.referralLink);
-		} catch (error) {
-			console.log("Error : ", error);
-		}
-	};
-
-	const fetchUsersData = async (filter) => {
+	// Fetch all users data initially (unfiltered)
+	const fetchAllUsersData = async () => {
+		setLoading(true);
+		console.log("loading", loading);
 		try {
 			const usersRef = collection(db, "users");
+			const q = query(usersRef, orderBy("createdAt", "desc"));
+			const querySnapshot = await getDocs(q);
 
-			let q;
+			const usersData = [];
+			for (const doc of querySnapshot.docs) {
+				const userData = { id: doc.id, ...doc.data() };
+				const email = userData?.email;
 
-			// Default order by "Newest" (createdAt in descending order)
-			if (filter === "newest") {
-				q = query(usersRef, orderBy("createdAt", "desc"));
-			} else if (filter === "oldest") {
-				// Order by "Oldest" (createdAt in ascending order)
-				q = query(usersRef, orderBy("createdAt", "asc"));
-			} else if (filter === "1") {
-				// Filter by Today
-				const today = new Date();
-				today.setHours(0, 0, 0, 0);
-				q = query(
-					usersRef,
-					where("createdAt", ">=", today),
-					orderBy("createdAt", "desc"),
-				);
-			} else if (filter === "7") {
-				// Filter by Last Week
-				const lastWeek = new Date();
-				lastWeek.setDate(lastWeek.getDate() - 7);
-				q = query(
-					usersRef,
-					where("createdAt", ">=", lastWeek),
-					orderBy("createdAt", "desc"),
-				);
-			} else if (filter === "30") {
-				// Filter by Last Month
-				const lastMonth = new Date();
-				lastMonth.setDate(lastMonth.getDate() - 30);
-				q = query(
-					usersRef,
-					where("createdAt", ">=", lastMonth),
-					orderBy("createdAt", "desc"),
-				);
-			} else {
-				// Default to Newest if no filter is applied
-				q = query(usersRef, orderBy("createdAt", "desc"));
+				userData.partnerType = "--";
+				userData.role = "--";
+
+				if (email) {
+					const response = await axios.post(
+						"https://kevin-project-zfc8.onrender.com/api/zoho",
+						{ email },
+					);
+					const userTypeDataList = response?.data?.data?.data;
+					const matchedData = userTypeDataList?.find(
+						(item) => item.PARTNER_TYPE,
+					);
+
+					if (matchedData) {
+						userData.partnerType = matchedData.PARTNER_TYPE;
+
+						for (let userTypeData of userTypeDataList) {
+							const leadSource1 = userTypeData.LEAD_Source1;
+							const agentRFCode = userTypeData.AGENT_RF_CODE;
+
+							if (leadSource1) {
+								userData.role = "Manager";
+								break;
+							} else if (agentRFCode) {
+								userData.role = "Agent";
+								break;
+							}
+						}
+					}
+				}
+				usersData.push(userData);
 			}
 
-			const querySnapshot = await getDocs(q);
-			const usersData = [];
-			querySnapshot.forEach((doc) => {
-				usersData.push({ id: doc.id, ...doc.data() });
-			});
-			setProductList(usersData);
+			setLoading(false);
+			console.log("afterloading", loading);
+			setAllUsersData(usersData); // Store the unfiltered data
+			setProductList(usersData); // Set initial data for display
 		} catch (error) {
+			setLoading(false);
 			console.error("Error fetching users data: ", error);
 		}
 	};
 
+	// Apply filters to the already fetched data
+	const applyFilter = (filter) => {
+		let filteredData = [...allUsersData]; // Start with all data
+
+		if (filter === "newest") {
+			filteredData = filteredData.sort((a, b) => b.createdAt - a.createdAt);
+		} else if (filter === "oldest") {
+			filteredData = filteredData.sort((a, b) => a.createdAt - b.createdAt);
+		} else if (filter === "1") {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			filteredData = filteredData.filter(
+				(user) => user.createdAt.toDate() >= today,
+			);
+		} else if (filter === "7") {
+			const lastWeek = new Date();
+			lastWeek.setDate(lastWeek.getDate() - 7);
+			filteredData = filteredData.filter(
+				(user) => user.createdAt.toDate() >= lastWeek,
+			);
+		} else if (filter === "30") {
+			const lastMonth = new Date();
+			lastMonth.setDate(lastMonth.getDate() - 30);
+			filteredData = filteredData.filter(
+				(user) => user.createdAt.toDate() >= lastMonth,
+			);
+		}
+
+		setProductList(filteredData);
+		setCurrentPage(0); // Reset to the first page
+	};
+
+	// Fetch all data on component mount
 	useEffect(() => {
-		fetchUsersData(selectedFilter);
+		fetchAllUsersData();
+	}, []);
+
+	// Apply filter when selectedFilter changes
+	useEffect(() => {
+		applyFilter(selectedFilter);
 	}, [selectedFilter]);
 
+	// Pagination logic
 	const nextPage = () => {
 		const startIndex = rowsLimit * (currentPage + 1);
 		const endIndex = startIndex + rowsLimit;
@@ -163,16 +180,7 @@ const UsersTable = () => {
 		}
 	};
 
-	useMemo(() => {
-		setCustomPagination(
-			Array(Math.ceil(productList?.length / rowsLimit)).fill(null),
-		);
-	}, []);
-
-	useEffect(() => {
-		fetchUsersData(selectedFilter);
-	}, []);
-
+	// Set pagination based on filtered data
 	useEffect(() => {
 		setRowsToShow(productList.slice(0, rowsLimit));
 		setCustomPagination([...Array(totalPage).keys()]);
@@ -192,12 +200,12 @@ const UsersTable = () => {
 			<div className=" w-full flex flex-col justify-center items-center">
 				<ToastContainer />
 				<div className="w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]">
-					<form className="h-auto mt-[-12px] cursor-pointer">
+					<form className="h-auto mt-[-12px] cursor-pointer relative">
 						<select
 							id="filter"
-							className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 px-4"
+							className="bg-gray-50 text-gray-900 text-sm rounded-lg w-full py-2 pl-4 pr-10 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 ease-in-out shadow-sm hover:bg-gray-100"
 							defaultValue=""
-							onChange={handleFilterChange} // Handle filter change
+							onChange={handleFilterChange}
 						>
 							<option value="" disabled>
 								Filter by Time
@@ -233,86 +241,160 @@ const UsersTable = () => {
 									<th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
 										Status
 									</th>
-									{/* <th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
-										User Type
-									</th> */}
+									<th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
+										Partner Type
+									</th>
+									<th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
+										Role
+									</th>
 								</tr>
 							</thead>
 							<tbody>
-								{rowsToShow &&
+								{loading &&
+									Array.from({ length: 5 }).map((_, index) => (
+										<tr
+											className={`${
+												index % 2 === 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
+											} animate-pulse`}
+											key={index}
+										>
+											<td
+												className={`py-2 px-3 font-normal text-base ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+											<td
+												className={`py-2 px-3 font-normal text-base ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+											<td
+												className={`py-2 px-3 font-normal text-base ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												<div className="h-4 bg-gray-300 rounded w-3/4"></div>
+											</td>
+										</tr>
+									))}
+
+								{!loading &&
 									rowsToShow?.map((data, index) => (
 										<tr
 											className={`${
-												index % 2 == 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
+												index % 2 === 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
 											}`}
 											key={index}
 										>
 											<td
 												className={`py-2 px-3 font-normal text-base ${
-													index == 0
+													index === 0
 														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
+														: "border-t"
 												} whitespace-nowrap`}
 											>
 												{data?.name.split(" ")[0]}
 											</td>
 											<td
 												className={`py-2 px-3 font-normal text-base ${
-													index == 0
+													index === 0
 														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
+														: "border-t"
 												} whitespace-nowrap`}
 											>
 												{data?.name.split(" ")[1]}
 											</td>
 											<td
 												className={`py-2 px-3 font-normal text-base ${
-													index == 0
+													index === 0
 														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
+														: "border-t"
 												} whitespace-nowrap`}
 											>
 												{data?.email}
 											</td>
 											<td
-												className={`py-2 px-3 text-base  font-normal ${
-													index == 0
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
 														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
+														: "border-t"
 												} whitespace-nowrap`}
 											>
 												{data?.phoneNumber}
 											</td>
 											<td
-												className={`py-2 px-3 text-base  font-normal ${
-													index == 0
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
 														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
+														: "border-t"
 												} whitespace-nowrap`}
 											>
 												{"Active"}
 											</td>
-											{/* <td
-												className={`py-2 px-3 text-base  font-normal ${
-													index == 0
+											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
 														? "border-t-2 border-gray-300"
-														: index == rowsToShow?.length
-															? "border-y"
-															: "border-t"
+														: "border-t"
 												} whitespace-nowrap`}
 											>
-												{data?.userType}
-											</td> */}
+												{data?.partnerType || "N/A"}
+											</td>
+											<td
+												className={`py-2 px-3 text-base font-normal ${
+													index === 0
+														? "border-t-2 border-gray-300"
+														: "border-t"
+												} whitespace-nowrap`}
+											>
+												{data?.role || "N/A"}
+											</td>
 										</tr>
 									))}
 							</tbody>

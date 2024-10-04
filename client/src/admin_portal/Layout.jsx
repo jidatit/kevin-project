@@ -16,6 +16,7 @@ import UserAvatar from "../assets/Avatar.png";
 import Logo from "../assets/Logo.png";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
+import EditIcon from "@mui/icons-material/Edit";
 
 const Loader = () => {
 	return (
@@ -171,7 +172,7 @@ const Layout = () => {
 							htmlFor="filein"
 							className="absolute bottom-2 right-4 cursor-pointer text-gray-800"
 						>
-							<ChangeCircleIcon />
+							<EditIcon />
 						</label>
 						<input
 							type="file"
@@ -183,7 +184,12 @@ const Layout = () => {
 					</div>
 					<div className="flex flex-col justify-center items-center gap-4 mt-8">
 						<div
-							onClick={() => navigate("/admin_portal/")}
+							onClick={() => {
+								navigate("/admin_portal/");
+								if (window.innerWidth < 768) {
+									toggleCloseSidebar();
+								}
+							}}
 							className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer"
 						>
 							<PeopleAltOutlinedIcon />
@@ -192,7 +198,12 @@ const Layout = () => {
 					</div>
 					<div className="flex flex-col justify-center items-center gap-4 mt-4">
 						<div
-							onClick={() => navigate("/admin_portal/partner_type")}
+							onClick={() => {
+								navigate("/admin_portal/partner_type");
+								if (window.innerWidth < 768) {
+									toggleCloseSidebar();
+								}
+							}}
 							className="flex justify-start items-center w-[80%] bg-gray-200 py-2 px-4 rounded text-base gap-2 cursor-pointer"
 						>
 							<PeopleAltOutlinedIcon />
