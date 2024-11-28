@@ -73,7 +73,7 @@ const UserLogin = () => {
             </button>
           </div>
         </form>
-        <h3>Not a Member?</h3>
+        <h3>Need to Register?</h3>
         <button
           onClick={routeToSignup}
           className="bg-white hover:bg-[#F2B145] text-[#F2B145] hover:text-[white] text-lg font-semibold py-2 px-4 w-[90%] md:w-[60%] border-2 border-[#F2B145] rounded shadow"
