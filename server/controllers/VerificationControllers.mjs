@@ -39,7 +39,7 @@ export const sendVerificationEmail = async (req, res, next) => {
 
     // Email template with Firebase verification link
     const mailOptions = {
-      from: "zohaib@jidatit.uk",
+      from: process.env.SENDER_EMAIL,
       to: email,
       subject: "Verify Your Email Address",
       html: `
