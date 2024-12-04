@@ -26,11 +26,10 @@ export const sendVerificationEmail = async (req, res, next) => {
         url: `${process.env.FRONTEND_URL}/email-verification`, // Replace with your frontend URL
         handleCodeInApp: true,
       });
-    console.log("Verification link generated", verificationLink);
 
     // Configure nodemailer
     const transporter = nodemailer.createTransport({
-      service: "gmail", // You can use any email service
+      host: process.env.HOST, // You can use any email service
       port: 587,
       auth: {
         user: process.env.SENDER_EMAIL, // Sender email (configured in environment variables)
@@ -40,7 +39,7 @@ export const sendVerificationEmail = async (req, res, next) => {
 
     // Email template with Firebase verification link
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: "zohaib@jidatit.uk",
       to: email,
       subject: "Verify Your Email Address",
       html: `
@@ -50,7 +49,7 @@ export const sendVerificationEmail = async (req, res, next) => {
             <h1 style="margin: 0; font-size: 24px;">Settling In Concierge Partner Services</h1>
           </div>
           <div style="padding: 20px; color: #333;">
-            <h2 style="color: #007bff; font-size: 20px; margin-bottom: 10px;">Verify Your Email</h2>
+            <h2 style="color: #6DB23A; font-size: 20px; margin-bottom: 10px;">Verify Your Email</h2>
             <p style="margin-bottom: 20px;">Hi,</p>
             <p style="margin-bottom: 20px;">Please follow this link to verify your email address and register for access to the Partner Portal:</p>
             <p style="text-align: center; margin-bottom: 20px;">

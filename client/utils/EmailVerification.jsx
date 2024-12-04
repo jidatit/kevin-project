@@ -1,6 +1,6 @@
 import axios from "axios";
 import { toast } from "react-toastify";
-const url = import.meta.env.VITE_BACKEND_URL;
+const url = "https://kevin-project-1-6imz.onrender.com";
 
 export const EmailVerificationHelper = async (user) => {
   const apiUrl = `${url}/auth/sendVerifyEmail`;

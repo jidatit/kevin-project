@@ -4,6 +4,7 @@ import { getAuth, sendEmailVerification } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { EmailVerificationHelper } from "../../utils/EmailVerification";
+import { toast } from "react-toastify";
 
 const EmailVerify = () => {
   const { logout } = useAuth();
@@ -14,10 +15,9 @@ const EmailVerify = () => {
   const handleResendVerification = async () => {
     try {
       await EmailVerificationHelper(user);
-      alert("Verification email sent! Please check your inbox.");
     } catch (error) {
       console.error("Error sending verification email: ", error.message);
-      alert("Failed to send verification email. Please try again.");
+      toast.error("Failed to send verification email. Please try again.");
     }
   };
 
