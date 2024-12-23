@@ -1,6 +1,6 @@
 import axios from "axios";
 import { toast } from "react-toastify";
-const url = "https://kevin-project-1-6imz.onrender.com";
+const url = "https://kevin-project-zfc8.onrender.com";
 
 export const EmailVerificationHelper = async (user) => {
   const apiUrl = `${url}/auth/sendVerifyEmail`;

@@ -14,6 +14,7 @@ dotenv.config();
 export const sendVerificationEmail = async (req, res, next) => {
   const { email, uid } = req.body;
 
+  // Validate required fields
   if (!email || !uid) {
     return res.status(400).json({ message: "Email and UID are required." });
   }
@@ -27,58 +28,70 @@ export const sendVerificationEmail = async (req, res, next) => {
         handleCodeInApp: true,
       });
 
-    // Configure nodemailer
+    // Configure nodemailer transporter
     const transporter = nodemailer.createTransport({
-      host: process.env.HOST, // You can use any email service
-      port: 587,
+      host: process.env.HOST,
+      port: 465,
+      secure: true,
       auth: {
-        user: process.env.SENDER_EMAIL, // Sender email (configured in environment variables)
-        pass: process.env.PASSWORD, // Sender email password
+        user: process.env.SENDER_EMAIL,
+        pass: process.env.PASSWORD,
       },
     });
 
-    // Email template with Firebase verification link
+    // Define email template with verification link
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: email,
       subject: "Verify Your Email Address",
       html: `
-      <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <div style="background-color: #6DB23A; color: #ffffff; padding: 20px; text-align: center;">
-            <h1 style="margin: 0; font-size: 24px;">Settling In Concierge Partner Services</h1>
+        <html>
+        <body>
+          <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+              <div style="background-color: #6DB23A; color: #ffffff; padding: 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 24px;">Settling In Concierge Partner Services</h1>
+              </div>
+              <div style="padding: 20px; color: #333;">
+                <h2 style="color: #6DB23A; font-size: 20px; margin-bottom: 10px;">Verify Your Email</h2>
+                <p style="margin-bottom: 20px;">Hi,</p>
+                <p style="margin-bottom: 20px;">Please follow this link to verify your email address and register for access to the Partner Portal:</p>
+                <p style="text-align: center; margin-bottom: 20px;">
+                  <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; font-size: 16px; color: #ffffff; background-color: #6DB23A; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email</a>
+                </p>
+                <p style="margin-bottom: 20px;">If you didn’t request to register, please ignore this email.</p>
+                <p style="margin-bottom: 0;">Thanks,</p>
+                <p><strong>Settling In Concierge Partner Services Team</strong></p>
+              </div>
+              <div style="background-color: #f1f1f1; text-align: center; padding: 10px; font-size: 12px; color: #555;">
+                <p style="margin: 0;">&copy; 2023 Settling In Concierge Partner Services. All rights reserved.</p>
+              </div>
+            </div>
           </div>
-          <div style="padding: 20px; color: #333;">
-            <h2 style="color: #6DB23A; font-size: 20px; margin-bottom: 10px;">Verify Your Email</h2>
-            <p style="margin-bottom: 20px;">Hi,</p>
-            <p style="margin-bottom: 20px;">Please follow this link to verify your email address and register for access to the Partner Portal:</p>
-            <p style="text-align: center; margin-bottom: 20px;">
-              <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; font-size: 16px; color: #ffffff; background-color: #6DB23A; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email</a>
-            </p>
-            <p style="margin-bottom: 20px;">If you didn’t request to register, please ignore this email.</p>
-            <p style="margin-bottom: 0;">Thanks,</p>
-            <p><strong>Settling In Concierge Partner Services Team</strong></p>
-          </div>
-          <div style="background-color: #f1f1f1; text-align: center; padding: 10px; font-size: 12px; color: #555;">
-            <p style="margin: 0;">&copy; 2023 Settling In Concierge Partner Services. All rights reserved.</p>
-          </div>
-        </div>
-      </div>
-    `,
+        </body>
+        </html>
+      `,
     };
 
-    // Send email
-    await transporter.sendMail(mailOptions);
-
-    // Send success response
-    res.status(200).json({
-      message: "Verification email sent successfully.",
-      link: verificationLink, // Optional: You can send the link back for debugging purposes
-    });
+    // Send email and validate success
+    const emailResult = await transporter.sendMail(mailOptions);
+    console.log("Email Result:", emailResult);
+    if (emailResult.accepted.includes(email)) {
+      // Email sent successfully
+      res.status(200).json({
+        message: "Verification email sent successfully.",
+        link: verificationLink, // Optional: For debugging purposes
+      });
+    } else {
+      // Email not sent to the intended recipient
+      res.status(500).json({
+        message: "Failed to send verification email. Please try again later.",
+      });
+    }
   } catch (error) {
     console.error("Error sending verification email:", error);
     res.status(500).json({
-      message: "Failed to send verification email.",
+      message: "An error occurred while sending the verification email.",
       error: error.message,
     });
   }
