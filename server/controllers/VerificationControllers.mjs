@@ -18,7 +18,7 @@ export const sendVerificationEmail = async (req, res, next) => {
   if (!email || !uid) {
     return res.status(400).json({ message: "Email and UID are required." });
   }
-
+  console.log("email verification starts");
   try {
     // Generate email verification link using Firebase Admin SDK
     const verificationLink = await admin
