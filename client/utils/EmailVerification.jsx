@@ -10,15 +10,14 @@ export const EmailVerificationHelper = async (user) => {
       email: user.email,
       uid: user.uid,
     });
-
-    // Check if the response indicates success.
-    if (response.status === 200 || response.data.success) {
-      toast.success("Verification email sent successfully!");
-    } else {
-      toast.error("Failed to send verification email. Please try again.");
-    }
+    console.log("response", response);
+    return { success: true, data: response.data };
   } catch (error) {
     console.error("Error sending verification email:", error);
-    toast.error("An error occurred while sending the email.");
+
+    const errorMessage =
+      error.response?.data?.error || "An unknown error occurred";
+
+    return { success: false, error: errorMessage };
   }
 };
