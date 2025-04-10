@@ -195,7 +195,6 @@ const ClientTable = () => {
 
           // Verify the success flag in the response payload
           if (leadResponse.data.success && leadResponse.data.data) {
-            // Adjust access if the data is nested differently (for example, leadResponse.data.data.data)
             return leadResponse.data.data.data || leadResponse.data.data;
           } else {
             toast.error(

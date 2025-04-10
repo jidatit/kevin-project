@@ -123,8 +123,6 @@ router.post("/agentData", async (req, res) => {
         },
       }
     );
-    console.log("whole response", response);
-    console.log("response : ", response?.data);
 
     if (response.status === 204) {
       return res.status(204).json({

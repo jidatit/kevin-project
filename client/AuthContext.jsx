@@ -49,7 +49,6 @@ export const AuthProvider = ({ children }) => {
         const data = await getUserDetails(user.uid);
         setUserType(data.userType);
         setIsEmailVerified(user.emailVerified);
-        setIsEmailVerified(true);
 
         const allDetails = {
           ...user,
