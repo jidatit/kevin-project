@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { config } from "dotenv";
-import tokensRouter from "./routes/tokens.mjs";
+import tokensRouter, { scheduleTokenRefresh } from "./routes/tokens.mjs";
 import VerificationRoutes from "./routes/VerificationRoutes.mjs";
 
 config();
@@ -20,6 +20,8 @@ app.use(
 app.use(express.json());
 app.use("/api", tokensRouter);
 app.use("/auth", VerificationRoutes);
+
+scheduleTokenRefresh();
 app.listen(port, () => {
   console.log(`Server is running on port : ${port}`);
 });
