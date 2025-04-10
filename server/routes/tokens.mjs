@@ -126,6 +126,14 @@ router.post("/agentData", async (req, res) => {
     console.log("whole response", response);
     console.log("response : ", response?.data);
 
+    if (response.status === 204) {
+      return res.status(204).json({
+        success: false,
+        message: "No data found from Zoho CRM",
+        data: response?.data,
+      });
+    }
+
     if (response.status !== 200) {
       return res.status(200).json({
         success: false,
@@ -164,6 +172,14 @@ router.post("/pmData", async (req, res) => {
         },
       }
     );
+
+    if (response.status === 204) {
+      return res.status(204).json({
+        success: false,
+        message: "No data found from Zoho CRM",
+        data: response?.data,
+      });
+    }
 
     if (response.status !== 200) {
       return res.status(200).json({
