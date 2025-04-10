@@ -348,7 +348,7 @@ export async function refreshAccessToken() {
   }
 }
 
-export function scheduleTokenRefresh() {
+function scheduleTokenRefresh() {
   if (cronJob) cronJob.stop();
   cronJob = cron.schedule(
     "*/55 * * * *",
@@ -366,15 +366,6 @@ export function scheduleTokenRefresh() {
       timezone: "Etc/UTC",
     }
   );
-
-  (async () => {
-    try {
-      console.log("Refreshing access token (on startup)...");
-      await refreshAccessToken();
-    } catch (error) {
-      console.error("Failed to refresh access token on startup:", error);
-    }
-  })();
 
   console.log("Token refresh scheduled for every 55 minutes.");
 }
