@@ -115,7 +115,7 @@ router.post("/agentData", async (req, res) => {
     const response = await axios.post(
       "https://www.zohoapis.com/crm/v6/coql",
       {
-        select_query: `select id, Full_Name, Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Agent_APP_Credentials, Agent_Preferred_Method_of_Reward_Fulfillment, Agent_Reimbursement from Leads where AgentReferralCode = '${AGENT_RF_CODE}' limit 2000`,
+        select_query: `select id, Est_Move_Date, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Agent_APP_Credentials, Agent_Preferred_Method_of_Reward_Fulfillment, Agent_Reimbursement from Leads where AgentReferralCode = '${AGENT_RF_CODE}' limit 2000`,
       },
       {
         headers: {
@@ -162,7 +162,7 @@ router.post("/pmData", async (req, res) => {
     const response = await axios.post(
       "https://www.zohoapis.com/crm/v6/coql",
       {
-        select_query: `select id, Full_Name , Est_Move_Date, Created_Time, Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct, Renters_Insurance_Policy from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
+        select_query: `select id,  Est_Move_Date,  Sold_Date, First_Name, Last_Name, Lead_Status, Provider, Internet_Sold, T_V_Sold, Phone_Sold, Move_Ref_Sold, Home_Monitoring, Utilities_set_up, Change_of_Address, New_State, New_City, Call_DispositionX, Electric_Acct, Gas_Acct from Leads where Lead_Source = '${LEAD_Source1}' order by Created_Time desc limit 2000`,
       },
       {
         headers: {

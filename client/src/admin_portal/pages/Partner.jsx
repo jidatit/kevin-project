@@ -302,7 +302,7 @@ const PartnerType = () => {
 
 	return (
 		<div className="max-w-3xl h-auto py-6 bg-white  rounded-lg">
-			<ToastContainer />
+
 			<div className="container px-4">
 				<div className="mx-auto p-6 pb-1 border bg-white rounded-md shadow-dashboard">
 					<div className="flex flex-wrap items-center justify-between mb-1 -m-2">

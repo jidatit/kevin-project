@@ -29,7 +29,6 @@ const UserLogin = () => {
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center bg-[#6DB23A]">
-      <ToastContainer />
       <div className="w-[90%] relative md:w-[70%] bg-[#FFFFFF] pt-[60px] pb-[60px] rounded-[10px] flex flex-col justify-center items-center gap-5">
         <img
           src="./logo.png"

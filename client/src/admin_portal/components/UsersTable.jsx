@@ -198,7 +198,6 @@ const UsersTable = () => {
   return (
     <>
       <div className=" w-full flex flex-col justify-center items-center">
-        <ToastContainer />
         <div className="w-full h-16 flex flex-row justify-end items-center rounded-t-lg text-white font-semibold text-base gap-4 pt-3 pl-10 pr-10 bg-[#6DB23A]">
           <form className="h-auto mt-[-12px] cursor-pointer relative">
             <select

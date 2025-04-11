@@ -45,7 +45,7 @@ const EmailVerification = () => {
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center bg-[#6DB23A]">
-      <ToastContainer />
+
       <div className="w-[90%] md:w-[70%] bg-white pt-10 pb-10 rounded-[10px] shadow-md flex flex-col items-center gap-5">
         <h2 className="text-center font-bold lg:text-[30px] md:text-[25px] text-[20px]">
           Email Verification

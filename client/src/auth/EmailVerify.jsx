@@ -53,7 +53,6 @@ const EmailVerify = () => {
 
   return (
     <>
-      <ToastContainer />
       <div className="w-full min-h-screen flex flex-col justify-center items-center bg-[#6DB23A]">
         <div className="w-[70%] relative md:w-[50%] bg-[#FFFFFF] pt-[60px] pb-[60px] rounded-[10px] flex flex-col justify-center items-center gap-5">
           <h2 className="text-center font-bold lg:text-[30px] md:text-[25px] text-[20px]">

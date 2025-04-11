@@ -127,7 +127,6 @@ const ForgotPassword = () => {
             </button>
           </form>
         </div>
-        <ToastContainer />
       </main>
     </>
   );
