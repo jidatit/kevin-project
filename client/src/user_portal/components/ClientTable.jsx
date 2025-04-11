@@ -159,7 +159,7 @@ const ClientTable = () => {
       const dataDoc = await getDoc(userRef);
 
       if (!dataDoc.exists()) {
-        console.log("No such document!");
+        console.error("User document not found!");
         toast.error("User document not found.");
         setLoading(false);
         return;
@@ -167,85 +167,97 @@ const ClientTable = () => {
 
       const userDataDB = dataDoc.data();
 
-      // Fetch initial Zoho data
+      // Fetch initial Zoho data using the email address
       const response = await axios.post(
         "https://kevin-project-zfc8.onrender.com/api/zoho",
         { email: userDataDB.email }
       );
 
-      // Assuming response.data.data.data is an array
+      // Assuming the Zoho response is nested: response.data.data.data is an array
       const userTypeDataList = response.data.data.data;
+      if (!userTypeDataList || userTypeDataList.length === 0) {
+        toast.error("No data returned from Zoho CRM for this email.");
+        setLoading(false);
+        return;
+      }
 
-      // Function to fetch PM or agent data based on the response structure
-      const fetchLeadData = async (leadSource, leadCode) => {
-        // Determine the API endpoint based on the lead source
-        const endpoint = leadSource === "LEAD_Source1" ? "pmData" : "agentData";
+      // Variable to track if an identifier was found and which one was used
+      let identifierFound = false;
+      let identifierUsed = "";
+      let leadsData = null;
 
+      // Helper function to fetch PM or agent data based on the provided identifier
+      const fetchLeadData = async (identifierKey, identifierValue) => {
+        const endpoint =
+          identifierKey === "LEAD_Source1" ? "pmData" : "agentData";
         try {
           const leadResponse = await axios.post(
             `https://kevin-project-zfc8.onrender.com/api/${endpoint}`,
-            { [leadSource]: leadCode }
+            { [identifierKey]: identifierValue }
           );
 
-          // Check if the API responded with 204 (no data found)
+          // If no data is found (using HTTP 204 or missing payload), return null
           if (leadResponse.status === 204) {
-            toast.error(`No data found for ${leadSource.toLowerCase()} data.`);
             return null;
           }
-
-          // Verify the success flag in the response payload
           if (leadResponse.data.success && leadResponse.data.data) {
             return leadResponse.data.data.data || leadResponse.data.data;
           } else {
-            toast.error(
-              `Failed to retrieve ${leadSource.toLowerCase()} data: ${
-                leadResponse.data.message
-              }`
-            );
             return null;
           }
         } catch (error) {
-          console.error(`Error fetching ${leadSource} data:`, error);
-          toast.error(
-            `Failed to retrieve ${leadSource.toLowerCase()} data. Please try again later.`
-          );
+          console.error(`Error fetching ${identifierKey} data:`, error);
           return null;
         }
       };
 
-      let leadsData = null;
-
-      // Iterate over userTypeDataList to find leads
+      // Process each record from Zoho
       for (let userTypeData of userTypeDataList) {
         const leadSource1 = userTypeData.LEAD_Source1;
         const agentRFCode = userTypeData.AGENT_RF_CODE;
 
-        // Check for LEAD_Source1
-        if (leadSource1) {
+        // Both identifiers found: log a warning and decide which one to use.
+        if (leadSource1 && agentRFCode) {
+          console.warn(
+            "Both LEAD_Source1 and AGENT_RF_CODE found. Defaulting to LEAD_Source1 for Project Manager."
+          );
+          identifierFound = true;
+          identifierUsed = "project manager (LEAD_Source1)";
           leadsData = await fetchLeadData("LEAD_Source1", leadSource1);
-          if (leadsData) break; // Break if leadsData is found
-        }
-
-        // Check for AGENT_RF_CODE
-        if (agentRFCode) {
+          if (leadsData) break;
+          // Otherwise, you might decide to also try agentRFCode if needed.
+        } else if (leadSource1) {
+          identifierFound = true;
+          identifierUsed = "project manager (LEAD_Source1)";
+          leadsData = await fetchLeadData("LEAD_Source1", leadSource1);
+          if (leadsData) break;
+        } else if (agentRFCode) {
+          identifierFound = true;
+          identifierUsed = "agent (AGENT_RF_CODE)";
           leadsData = await fetchLeadData("AGENT_RF_CODE", agentRFCode);
-          if (leadsData) break; // Break if leadsData is found
+          if (leadsData) break;
         }
       }
 
-      if (leadsData) {
-        setLoading(false);
+      // Notify user based on which condition occurred
+      if (!identifierFound) {
+        toast.error(
+          "No identifier found for the user in CRM. Please contact support."
+        );
+      } else if (identifierFound && !leadsData) {
+        toast.warning(
+          `Identifier (${identifierUsed}) found, but no leads data returned from CRM for that identifier.`
+        );
+      } else if (leadsData) {
+        toast.success(`Data successfully retrieved for ${identifierUsed}.`);
         setLeadsData(leadsData);
-      } else {
-        setLoading(false);
-        toast.warning("No matching leads data found.");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      setLoading(false);
       toast.error("Error retrieving user data. Please try again.");
     } finally {
-      setLoading(false); // Ensure loading is set to false in all cases
+      // Ensure loading is false regardless of outcome
+      setLoading(false);
     }
   };
 
