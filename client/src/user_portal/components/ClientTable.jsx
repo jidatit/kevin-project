@@ -312,25 +312,25 @@ const ClientTable = () => {
     if (leadsData) {
       if (filters?.First_Name) {
         filtered = filtered.filter((item) =>
-          item?.Full_Name?.toLowerCase().includes(
+          item?.First_Name?.toLowerCase().includes(
             filters?.First_Name.toLowerCase()
           )
         );
       }
 
-      // if (filters?.createdTimeFrom) {
-      //   filtered = filtered?.filter(
-      //     (item) =>
-      //       new Date(item?.Created_Time) >= new Date(filters?.createdTimeFrom)
-      //   );
-      // }
+      if (filters?.createdTimeFrom) {
+        filtered = filtered?.filter(
+          (item) =>
+            new Date(item?.Created_Time) >= new Date(filters?.createdTimeFrom)
+        );
+      }
 
-      // if (filters?.createdTimeTo) {
-      //   filtered = filtered?.filter(
-      //     (item) =>
-      //       new Date(item?.Created_Time) <= new Date(filters?.createdTimeTo)
-      //   );
-      // }
+      if (filters?.createdTimeTo) {
+        filtered = filtered?.filter(
+          (item) =>
+            new Date(item?.Created_Time) <= new Date(filters?.createdTimeTo)
+        );
+      }
 
       if (filters?.sortOrder) {
         filtered = filtered?.sort((a, b) => {
@@ -629,7 +629,7 @@ const ClientTable = () => {
                     onChange={handleFilterChange}
                     className="w-full"
                   />
-                  {/* <DatePicker
+                  <DatePicker
                     label="Created Time From"
                     value={filters.createdTimeFrom}
                     onChange={(date) =>
@@ -648,7 +648,7 @@ const ClientTable = () => {
                       <TextField {...params} size="small" />
                     )}
                     className="w-full"
-                  /> */}
+                  />
                   <FormControl
                     size="small"
                     variant="outlined"
@@ -797,10 +797,10 @@ const ClientTable = () => {
                                 : "border-t"
                             } whitespace-nowrap`}
                           >
-                            {!data?.Est_Move_Date ? (
+                            {!data?.Created_Time ? (
                               <div> - </div>
                             ) : (
-                              <div>{data?.Est_Move_Date}</div>
+                              <div>{data?.Created_Time}</div>
                             )}
                           </td>
                           <td
@@ -880,6 +880,7 @@ const ClientTable = () => {
                                 [
                                   "Record ID",
                                   "Est Move Date",
+                                  "Created Time",
                                   "Sold Date",
                                   "First Name",
                                   "Last Name",
@@ -906,6 +907,7 @@ const ClientTable = () => {
                                 [
                                   data?.id,
                                   data?.Est_Move_Date,
+                                  data?.Created_Time,
                                   data?.Sold_Date,
                                   data?.First_Name,
                                   data?.Last_Name,
@@ -1273,7 +1275,7 @@ const ClientTable = () => {
                   </div>
 
                   <div className="w-full h-full flex flex-col lg:flex-row xl:flex-row justify-center items-center gap-5">
-                    {/* <div className="w-72 flex flex-col justify-start items-start gap-2">
+                    <div className="w-72 flex flex-col justify-start items-start gap-2">
                       <label className="text-sm font-semibold">
                         {" "}
                         Created Time{" "}
@@ -1282,12 +1284,12 @@ const ClientTable = () => {
                         sx={{ width: "100%" }}
                         id="createdTimeID"
                         value={
-                          !dataWithLeadId.Created_Time
+                          !dataWithLeadId?.Created_Time
                             ? "---"
-                            : dataWithLeadId.Created_Time
+                            : dataWithLeadId?.Created_Time
                         }
                       />
-                    </div> */}
+                    </div>
                     <div className="w-72 flex flex-col justify-start items-start gap-2">
                       <label className="text-sm font-semibold">
                         {" "}
