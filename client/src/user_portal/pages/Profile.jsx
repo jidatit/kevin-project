@@ -52,7 +52,7 @@ const Profile = () => {
           if (matchedData) {
             setleadsData(matchedData);
           } else {
-            toast.warning("No matching data found.");
+            toast.warning("No matching data found for Profile.");
           }
         } catch (zohoError) {
           console.error("Error fetching data from Zoho: ", zohoError);
