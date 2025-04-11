@@ -712,7 +712,7 @@ const ClientTable = () => {
                       Full Name
                     </th>
                     <th className="py-3 px-3 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
-                      Move date
+                      Created Time
                     </th>
                     <th className="py-3 px-3 justify-center gap-1 text-[#6DB23A] sm:text-base font-bold whitespace-nowrap">
                       Sold Date
